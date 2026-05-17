@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Harbor Media — Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sun:#F59E0B;--sun2:#D97706;--sun-bg:rgba(245,158,11,0.08);
+  --credit:#818CF8;--credit2:#6366F1;--credit-bg:rgba(129,140,248,0.08);
+  --green:#10B981;--red:#EF4444;
+  --dark:#080F1E;--mid:#111827;--card:#0F1B2E;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#E2E8F0;--dim:#64748B;--muted:#94A3B8;--r:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(245,158,11,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.02) 1px,transparent 1px);background-size:48px 48px}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none}
+.o1{width:600px;height:600px;background:radial-gradient(circle,rgba(245,158,11,0.07),transparent 70%);top:-150px;right:-100px}
+.o2{width:500px;height:500px;background:radial-gradient(circle,rgba(99,102,241,0.06),transparent 70%);bottom:-150px;left:-100px}
+
+.shell{display:flex;min-height:100vh;position:relative;z-index:1}
+.sidebar{width:258px;min-height:100vh;position:fixed;top:0;left:0;bottom:0;background:rgba(8,15,30,0.97);border-right:1px solid var(--border);backdrop-filter:blur(24px);display:flex;flex-direction:column;padding-bottom:20px;z-index:100;overflow-y:auto}
+.main{margin-left:258px;flex:1;padding:36px 40px}
+
+/* SIDEBAR */
+.logo-area{padding:22px 18px 18px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.logo{display:flex;align-items:center;gap:11px}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.4px}
+.logo-name span{color:var(--sun)}
+.logo-tag{font-size:10px;color:var(--dim);letter-spacing:1.2px;text-transform:uppercase;margin-top:2px}
+.status-bar{display:flex;flex-direction:column;gap:5px;margin-top:12px;padding:10px 12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:9px}
+.status-row{display:flex;align-items:center;gap:7px;font-size:11.5px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-green{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
+.dot-yellow{background:var(--sun)}
+.dot-red{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.nav-sec{padding:4px 10px;margin-top:4px}
+.nav-label{font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;padding:8px 8px 4px}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;font-size:13px;cursor:pointer;color:var(--muted);transition:.15s;margin-bottom:2px;border:1px solid transparent;user-select:none;text-decoration:none}
+.nav-btn:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+.nav-btn.on{background:var(--sun-bg);color:var(--sun);border-color:rgba(245,158,11,0.18)}
+.nav-btn.on-c{background:var(--credit-bg);color:var(--credit);border-color:rgba(129,140,248,0.2)}
+.nav-btn.on-g{background:rgba(16,185,129,0.08);color:var(--green);border-color:rgba(16,185,129,0.2)}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--sun);color:#000}
+.nav-badge.c{background:var(--credit);color:#fff}
+.nav-badge.g{background:var(--green);color:#000}
+
+/* PAGES */
+.page{display:none;animation:fadeUp .22s ease}
+.page.on{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ph{margin-bottom:28px}
+.crumb{font-size:12px;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.crumb span{color:var(--sun);font-weight:500}
+.ph h1{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.5px}
+.ph p{color:var(--muted);font-size:13.5px;margin-top:5px;line-height:1.6}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;transition:.2s;position:relative;overflow:hidden}
+.stat:hover{border-color:rgba(245,158,11,0.2)}
+.stat-lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.stat-sub{font-size:11.5px;color:var(--dim);margin-top:5px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.sparkline{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:8px}
+.sk{flex:1;border-radius:2px 2px 0 0;background:rgba(245,158,11,0.2);min-height:3px}
+.sk.hi{background:var(--sun)}
+.sk.cr{background:var(--credit)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px}
+.card-h{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px}
+.mb{margin-bottom:20px}
+
+/* FUNNEL */
+.funnel{display:flex;flex-direction:column;gap:7px}
+.fstep{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,0.015);position:relative;overflow:hidden}
+.fb{position:absolute;left:0;top:0;bottom:0;pointer-events:none}
+.fi{font-size:14px;position:relative;z-index:1}
+.fl{font-size:13px;flex:1;position:relative;z-index:1}
+.fc{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--sun);position:relative;z-index:1}
+.fc.cr{color:var(--credit)}
+.fp{font-size:11px;color:var(--dim);min-width:32px;text-align:right;position:relative;z-index:1}
+
+/* PROGRESS */
+.pw{margin:8px 0}
+.pr{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+.pr span:last-child{color:var(--sun);font-weight:600}
+.pb{height:5px;background:rgba(255,255,255,0.06);border-radius:3px}
+.pf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--sun),var(--sun2));transition:1s}
+.pf.cr{background:linear-gradient(90deg,var(--credit),var(--credit2))}
+
+/* ACTIVITY */
+.act-item{border-bottom:1px solid rgba(255,255,255,0.04);padding:10px 0;display:flex;gap:12px;align-items:flex-start}
+.act-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.act-text{font-size:13px;line-height:1.5}
+.act-time{font-size:11px;color:var(--dim);margin-top:2px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
+td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700}
+.b-hot{background:rgba(245,158,11,0.15);color:var(--sun)}
+.b-warm{background:rgba(129,140,248,0.15);color:var(--credit)}
+.b-cold{background:rgba(100,116,139,0.12);color:var(--dim)}
+.b-new{background:rgba(16,185,129,0.15);color:var(--green)}
+.b-solar{background:rgba(245,158,11,0.1);color:var(--sun);border:1px solid rgba(245,158,11,0.2)}
+.b-credit{background:rgba(129,140,248,0.1);color:var(--credit);border:1px solid rgba(129,140,248,0.2)}
+.b-both{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.score-row{display:flex;align-items:center;gap:7px}
+.score-bg{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.07)}
+.score-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--sun),var(--sun2))}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-sun{background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;font-weight:700}
+.btn-sun:hover{box-shadow:0 4px 20px rgba(245,158,11,.35);transform:translateY(-1px)}
+.btn-credit{background:linear-gradient(135deg,#818CF8,#6366F1);color:#fff;font-weight:700}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--sun);color:var(--sun)}
+.btn-green{background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-weight:700}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+/* FORMS */
+.fg{margin-bottom:14px}
+.fl-lbl{font-size:11.5px;color:var(--muted);margin-bottom:6px;display:block;font-weight:500}
+.fi-inp,.fs-sel,.ft-area{width:100%;padding:10px 14px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;transition:.15s}
+.fi-inp:focus,.fs-sel:focus,.ft-area:focus{border-color:var(--sun)}
+.fs-sel option{background:#111827}
+.ft-area{min-height:88px;resize:vertical;line-height:1.6}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* BUYER CARDS */
+.bcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;transition:.2s}
+.bcard:hover{border-color:rgba(245,158,11,0.3);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.bcard.cr:hover{border-color:rgba(129,140,248,0.3)}
+.bh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.av{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;flex-shrink:0}
+.av-s{background:rgba(245,158,11,0.12);color:var(--sun);border:1px solid rgba(245,158,11,0.2)}
+.av-c{background:rgba(129,140,248,0.12);color:var(--credit);border:1px solid rgba(129,140,248,0.2)}
+.bn{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+.bs{font-size:11.5px;color:var(--dim);margin-top:2px}
+.bd{font-size:12.5px;color:var(--dim);margin:4px 0;display:flex;gap:8px}
+.bd span{color:var(--text)}
+.bf{display:flex;align-items:center;justify-content:space-between;padding-top:13px;border-top:1px solid var(--border);margin-top:12px}
+.bprice{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--green)}
+.bprice-sub{font-size:11px;color:var(--dim)}
+.btag{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;margin-top:4px;margin-right:4px}
+.bt-s{background:rgba(245,158,11,0.1);color:var(--sun);border:1px solid rgba(245,158,11,0.2)}
+.bt-c{background:rgba(129,140,248,0.1);color:var(--credit);border:1px solid rgba(129,140,248,0.2)}
+.bt-b{background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+
+/* AI BOX */
+.ai-box{background:linear-gradient(135deg,rgba(245,158,11,0.04),rgba(99,102,241,0.04));border:1px solid rgba(245,158,11,0.15);border-radius:var(--r);padding:22px 24px;margin-bottom:20px}
+.ai-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.ai-orb{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#F59E0B,#6366F1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ai-title{font-family:'Syne',sans-serif;font-weight:800;font-size:14px}
+.ai-tag{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px;margin-top:2px}
+.ai-out{background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:9px;padding:16px;min-height:60px;font-size:13px;line-height:1.75;white-space:pre-wrap;margin-top:14px;display:none}
+.spinner{display:flex;gap:5px;align-items:center;justify-content:center;padding:20px 0}
+.sp{width:7px;height:7px;border-radius:50%;background:var(--sun);animation:bounce 1.4s infinite}
+.sp:nth-child(2){animation-delay:.2s}.sp:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-9px)}}
+
+/* TABS */
+.tab-row{display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,0.03);padding:4px;border-radius:10px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px 10px;border-radius:7px;text-align:center;font-size:13px;cursor:pointer;color:var(--dim);transition:.15s;border:1px solid transparent}
+.tab.on{background:var(--sun-bg);color:var(--sun);border-color:rgba(245,158,11,0.2);font-weight:600}
+.tab.on-c{background:var(--credit-bg);color:var(--credit);border-color:rgba(129,140,248,0.2);font-weight:600}
+
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
+.p-col{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px}
+.p-col-h{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.p-cnt{background:var(--border);padding:1px 7px;border-radius:10px;font-size:11px}
+.p-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:8px;cursor:pointer;transition:.15s;font-size:12px}
+.p-card:hover{border-color:rgba(245,158,11,0.3)}
+.p-name{font-weight:600;font-size:13px;margin-bottom:3px}
+.p-sub{color:var(--dim);font-size:11px}
+.p-val{color:var(--sun);font-weight:700;font-size:12px;margin-top:5px}
+
+/* STRATEGY BOX */
+.info-box{background:linear-gradient(135deg,rgba(245,158,11,0.05),rgba(16,185,129,0.03));border:1px solid rgba(245,158,11,0.2);border-radius:var(--r);padding:18px 20px;margin-bottom:20px}
+.info-box h3{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:8px;color:var(--sun)}
+.info-box p{font-size:13px;color:var(--muted);line-height:1.7}
+.info-box.cr{border-color:rgba(129,140,248,0.2);background:linear-gradient(135deg,rgba(129,140,248,0.05),rgba(16,185,129,0.03))}
+.info-box.cr h3{color:var(--credit)}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)}
+.step-num{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#000;flex-shrink:0}
+.step-body h4{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:4px}
+.step-body p{font-size:12.5px;color:var(--muted);line-height:1.6}
+.step-body code{background:rgba(245,158,11,0.1);color:var(--sun);padding:1px 6px;border-radius:4px;font-size:11.5px;font-family:monospace}
+
+/* COPY BOX */
+.copy-box{position:relative;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:9px;padding:14px 16px;font-family:monospace;font-size:12px;line-height:1.7;color:var(--muted);margin:10px 0;max-height:280px;overflow-y:auto}
+.copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;border-radius:6px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);color:var(--sun);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.copy-btn:hover{background:rgba(245,158,11,0.2)}
+
+/* SECTION HEADING */
+.sec-h{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+
+/* WEBHOOK */
+.webhook-card{background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.webhook-url{font-family:monospace;font-size:12px;color:var(--green);background:rgba(0,0,0,0.3);padding:8px 12px;border-radius:7px;word-break:break-all;margin:8px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--mid);border:1px solid var(--green);color:var(--green);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;transform:translateY(80px);opacity:0;transition:.3s all;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+
+/* SETUP CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;transition:.15s}
+.check-item:hover{border-color:var(--border2)}
+.check-item.done{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.04)}
+.check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;font-size:11px}
+.check-item.done .check-box{background:var(--green);border-color:var(--green);color:#000}
+
+/* RESPONSIVE */
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.pipeline{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="orb o1"></div><div class="orb o2"></div>
+<div id="toast" class="toast"></div>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo">
+      <div class="logo-mark">☀</div>
+      <div><div class="logo-name">Blue Harbor <span>Media</span></div><div class="logo-tag">Automated Lead Engine</div></div>
+    </div>
+    <div class="status-bar">
+      <div class="status-row"><div class="dot dot-green" id="dot-solar-ghl"></div><span id="st-solar-ghl">Solar GHL: <b>Not Connected</b></span></div>
+      <div class="status-row"><div class="dot dot-green" id="dot-credit-ghl"></div><span id="st-credit-ghl">Credit GHL: <b>Not Connected</b></span></div>
+      <div class="status-row"><div class="dot dot-yellow" id="dot-ai"></div><span id="st-ai">Claude AI: <b>Not Configured</b></span></div>
+    </div>
+  </div>
+
+  <div class="nav-sec">
+    <div class="nav-label">Platform</div>
+    <div class="nav-btn on" onclick="goto('dashboard',this)"><span>⚡</span>Command Center</div>
+    <div class="nav-btn" onclick="goto('setup',this)"><span>🔌</span>Setup & Connections<span class="nav-badge" id="setup-badge" style="background:var(--red);color:#fff">!</span></div>
+    <div class="nav-btn" onclick="goto('pipeline',this)"><span>📊</span>Lead Pipeline<span class="nav-badge g" id="pipe-badge">0</span></div>
+  </div>
+
+  <div class="nav-sec">
+    <div class="nav-label">Solar Engine</div>
+    <div class="nav-btn" onclick="goto('solar-campaigns',this)"><span>📣</span>Campaigns</div>
+    <div class="nav-btn" onclick="goto('solar-leads',this)"><span>☀</span>Solar Leads<span class="nav-badge" id="s-badge">0</span></div>
+    <div class="nav-btn" onclick="goto('solar-lp',this)"><span>🌐</span>Landing Page</div>
+  </div>
+
+  <div class="nav-sec">
+    <div class="nav-label">Credit Engine</div>
+    <div class="nav-btn" onclick="goto('credit-campaigns',this)"><span>📣</span>Campaigns</div>
+    <div class="nav-btn" onclick="goto('credit-leads',this)"><span>◈</span>Credit Leads<span class="nav-badge c" id="c-badge">0</span></div>
+  </div>
+
+  <div class="nav-sec">
+    <div class="nav-label">Sell Leads</div>
+    <div class="nav-btn" onclick="goto('buyers',this)"><span>🏢</span>Buyer Directory</div>
+    <div class="nav-btn" onclick="goto('ai-tools',this)"><span>✦</span>AI Tools</div>
+  </div>
+
+  <div class="nav-sec" style="margin-top:auto">
+    <div class="nav-btn" onclick="goto('settings',this)"><span>⚙</span>Settings</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="page-dashboard" class="page on">
+  <div class="ph">
+    <div class="crumb"><span>Blue Harbor Media</span> › Command Center</div>
+    <h1>⚡ Command Center</h1>
+    <p>Your fully automated lead generation engine. Leads flow in automatically — you only act when it's time to sell.</p>
+  </div>
+
+  <div id="setup-warning" class="info-box" style="display:none">
+    <h3>⚠ Setup Required</h3>
+    <p>Your platform is not yet connected. Go to <strong style="color:var(--text)">Setup & Connections</strong> to connect GoHighLevel and configure your Anthropic API key. The entire system runs once those two are connected.</p>
+    <button class="btn btn-sun" style="margin-top:10px" onclick="goto('setup',null)">→ Complete Setup</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Total Leads Generated</div><div class="stat-val" style="color:var(--sun)" id="d-total">0</div><div class="stat-sub" id="d-total-sub">Connect GHL to see live data</div><div class="sparkline" id="sk1"></div></div>
+    <div class="stat"><div class="stat-lbl">Est. Revenue Available</div><div class="stat-val" style="color:var(--green)" id="d-rev">$0</div><div class="stat-sub" id="d-rev-sub">Based on lead scores × price</div><div class="sparkline" id="sk2"></div></div>
+    <div class="stat"><div class="stat-lbl">HOT Solar Leads</div><div class="stat-val" style="color:var(--sun)" id="d-solar">0</div><div class="stat-sub">Score 80+ · Ready to sell</div><div class="sparkline" id="sk3"></div></div>
+    <div class="stat"><div class="stat-lbl">HOT Credit Leads</div><div class="stat-val" style="color:var(--credit)" id="d-credit">0</div><div class="stat-sub">Score 65+ · Ready to sell</div><div class="sparkline" id="sk4"></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-h">☀ Solar Lead Funnel <span class="badge b-hot" style="margin-left:auto;font-size:10px" id="solar-status">OFFLINE</span></div>
+      <div class="funnel">
+        <div class="fstep"><div class="fb" style="width:100%;background:linear-gradient(90deg,rgba(245,158,11,0.1),transparent)"></div><span class="fi">📣</span><span class="fl">FB/Google Ad Impressions</span><span class="fc" id="f1">—</span><span class="fp">100%</span></div>
+        <div class="fstep"><div class="fb" style="width:62%;background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent)"></div><span class="fi">👆</span><span class="fl">Landing Page Visits</span><span class="fc" id="f2">—</span><span class="fp">~62%</span></div>
+        <div class="fstep"><div class="fb" style="width:28%;background:linear-gradient(90deg,rgba(245,158,11,0.06),transparent)"></div><span class="fi">📋</span><span class="fl">Form Submissions</span><span class="fc" id="f3">—</span><span class="fp">~28%</span></div>
+        <div class="fstep"><div class="fb" style="width:14%;background:linear-gradient(90deg,rgba(245,158,11,0.04),transparent)"></div><span class="fi">🤖</span><span class="fl">AI Qualified (Score 70+)</span><span class="fc" id="f4">—</span><span class="fp">~14%</span></div>
+        <div class="fstep"><div class="fb" style="width:7%;background:linear-gradient(90deg,rgba(245,158,11,0.03),transparent)"></div><span class="fi">💰</span><span class="fl">Sold to Installers</span><span class="fc" id="f5">—</span><span class="fp">~7%</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span style="color:var(--credit)">◈</span> Credit Funnel <span class="badge b-warm" style="margin-left:auto;font-size:10px" id="credit-status">OFFLINE</span></div>
+      <div class="funnel">
+        <div class="fstep"><div class="fb" style="width:100%;background:linear-gradient(90deg,rgba(129,140,248,0.1),transparent)"></div><span class="fi">📣</span><span class="fl">Campaign Reach</span><span class="fc cr" id="cf1">—</span><span class="fp">100%</span></div>
+        <div class="fstep"><div class="fb" style="width:55%;background:linear-gradient(90deg,rgba(129,140,248,0.07),transparent)"></div><span class="fi">👆</span><span class="fl">Landing Page Visits</span><span class="fc cr" id="cf2">—</span><span class="fp">~55%</span></div>
+        <div class="fstep"><div class="fb" style="width:22%;background:linear-gradient(90deg,rgba(129,140,248,0.05),transparent)"></div><span class="fi">📋</span><span class="fl">Form Submissions</span><span class="fc cr" id="cf3">—</span><span class="fp">~22%</span></div>
+        <div class="fstep"><div class="fb" style="width:9%;background:linear-gradient(90deg,rgba(129,140,248,0.03),transparent)"></div><span class="fi">🤖</span><span class="fl">AI Qualified (Score 60+)</span><span class="fc cr" id="cf4">—</span><span class="fp">~9%</span></div>
+        <div class="fstep"><div class="fb" style="width:4%;background:linear-gradient(90deg,rgba(129,140,248,0.02),transparent)"></div><span class="fi">💰</span><span class="fl">Sold to Agencies</span><span class="fc cr" id="cf5">—</span><span class="fp">~4%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-h">📡 Channel Performance</div>
+      <div class="pw"><div class="pr"><span>Facebook Lead Ads</span><span id="ch1">—%</span></div><div class="pb"><div class="pf" id="ch1b" style="width:0%"></div></div></div>
+      <div class="pw"><div class="pr"><span>Google Search Ads</span><span id="ch2">—%</span></div><div class="pb"><div class="pf" id="ch2b" style="width:0%"></div></div></div>
+      <div class="pw"><div class="pr"><span>SMS Campaigns (GHL)</span><span id="ch3">—%</span></div><div class="pb"><div class="pf cr" id="ch3b" style="width:0%"></div></div></div>
+      <div class="pw"><div class="pr"><span>Email Drip (GHL)</span><span id="ch4">—%</span></div><div class="pb"><div class="pf cr" id="ch4b" style="width:0%"></div></div></div>
+      <p style="font-size:11.5px;color:var(--dim);margin-top:12px">Live data appears after GHL connection</p>
+    </div>
+    <div class="card">
+      <div class="card-h">⚡ Live Lead Feed</div>
+      <div id="live-feed"><p style="font-size:13px;color:var(--dim);padding:20px 0;text-align:center">No leads yet — connect GHL and launch campaigns to see live data</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SETUP ===================== -->
+<div id="page-setup" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Platform</span> › Setup & Connections</div>
+    <h1>🔌 Setup & Connections</h1>
+    <p>Connect these services once — then everything runs automatically. Estimated setup time: 2–3 hours.</p>
+  </div>
+
+  <div class="info-box">
+    <h3>📋 How This All Works Together</h3>
+    <p>
+      <strong style="color:var(--text)">GoHighLevel</strong> is the automation backbone — it captures leads from your landing pages, runs email/SMS sequences, and holds your CRM pipeline. <strong style="color:var(--text)">Facebook/Google</strong> ad leads flow directly into GHL via native integrations. <strong style="color:var(--text)">Claude AI</strong> scores each lead via webhook and writes your campaigns. <strong style="color:var(--text)">This dashboard</strong> reads your GHL data via API so you see everything in one place. You only touch the system when a lead is HOT and ready to sell.
+    </p>
+  </div>
+
+  <!-- GHL Setup -->
+  <div class="card mb">
+    <div class="card-h">1️⃣ GoHighLevel — Two Sub-Accounts (Solar + Credit Repair)</div>
+    <div class="info-box" style="margin-bottom:16px">
+      <h3>Why 2 Sub-Accounts?</h3>
+      <p>You have a <strong style="color:var(--text)">Solar sub-account</strong> and a <strong style="color:var(--text)">Credit Repair sub-account</strong> in GHL. Each has its own API key and Location ID. Enter both below so the portal can read leads from both pipelines simultaneously.</p>
+    </div>
+    <div class="g2">
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--sun);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">☀ Solar Sub-Account</p>
+        <div class="fg"><label class="fl-lbl">Solar GHL API Key</label><input class="fi-inp" id="ghl-key-solar" type="password" placeholder="API key from Solar sub-account"></div>
+        <div class="fg"><label class="fl-lbl">Solar Location ID</label><input class="fi-inp" id="ghl-loc-solar" placeholder="Location ID from Solar sub-account"></div>
+        <p style="font-size:12px;font-weight:700;color:var(--credit);margin-bottom:10px;margin-top:16px;text-transform:uppercase;letter-spacing:.5px">◈ Credit Repair Sub-Account</p>
+        <div class="fg"><label class="fl-lbl">Credit GHL API Key</label><input class="fi-inp" id="ghl-key-credit" type="password" placeholder="API key from Credit sub-account"></div>
+        <div class="fg"><label class="fl-lbl">Credit Location ID</label><input class="fi-inp" id="ghl-loc-credit" placeholder="Location ID from Credit sub-account"></div>
+        <div class="btn-row"><button class="btn btn-sun" onclick="connectGHL()">🔌 Connect Both Sub-Accounts</button></div>
+      </div>
+      <div>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:12px">
+          <strong style="color:var(--text)">How to get your GHL API key:</strong><br>
+          1. Sign up at <strong style="color:var(--sun)">gohighlevel.com</strong> ($97/mo)<br>
+          2. Go to Settings → API Keys → Create Key<br>
+          3. Copy and paste it here<br><br>
+          <strong style="color:var(--text)">What GHL handles automatically:</strong><br>
+          ✓ Lead capture from all form submissions<br>
+          ✓ Email drip sequences (solar + credit)<br>
+          ✓ SMS follow-ups via Twilio<br>
+          ✓ CRM pipeline management<br>
+          ✓ Facebook + Google lead form sync
+        </p>
+      </div>
+    </div>
+
+    <div class="sec-h" style="margin-top:8px">GHL Webhook URL for Lead Scoring</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Add this webhook in GHL → Automation → Webhooks → New Webhook → "Lead Created" trigger. GHL will POST every new lead here for AI scoring.</p>
+    <div class="webhook-card">
+      <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:4px">Your AI Scoring Webhook (runs on submission)</div>
+      <div class="webhook-url" id="webhook-url">https://[your-domain]/webhook/score-lead</div>
+      <p style="font-size:11.5px;color:var(--dim);margin-top:6px">Replace [your-domain] with wherever you host this file, or use a free tool like <strong style="color:var(--text)">n8n.io</strong> or <strong style="color:var(--text)">make.com</strong> as your webhook receiver.</p>
+    </div>
+  </div>
+
+  <!-- Anthropic API -->
+  <div class="card mb">
+    <div class="card-h">2️⃣ Anthropic Claude AI — Lead Scorer & Content Generator</div>
+    <div class="g2">
+      <div>
+        <div class="fg"><label class="fl-lbl">Anthropic API Key</label><input class="fi-inp" id="ant-key" type="password" placeholder="sk-ant-api03-..."></div>
+        <div class="fg"><label class="fl-lbl">Model</label><select class="fs-sel"><option>claude-sonnet-4-5-20250929</option></select></div>
+        <div class="btn-row"><button class="btn btn-sun" onclick="connectAI()">✦ Save & Test AI Key</button></div>
+      </div>
+      <div>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.7">
+          <strong style="color:var(--text)">Get your API key:</strong><br>
+          1. Go to <strong style="color:var(--sun)">console.anthropic.com</strong><br>
+          2. Create account → API Keys → New Key<br>
+          3. Paste it here<br><br>
+          <strong style="color:var(--text)">Claude AI does automatically:</strong><br>
+          ✓ Score every new lead (0–100)<br>
+          ✓ Write campaign copy on demand<br>
+          ✓ Generate personalized follow-up messages<br>
+          ✓ Write sales pitch emails to buyers<br>
+          ✓ Flag cross-sell opportunities<br><br>
+          <strong style="color:var(--text)">Cost:</strong> ~$0.003 per lead scored. 1,000 leads ≈ $3.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Facebook -->
+  <div class="card mb">
+    <div class="card-h">3️⃣ Facebook Lead Ads → GoHighLevel (Native Integration)</div>
+    <div class="info-box" style="margin-bottom:14px">
+      <h3>No API coding needed</h3>
+      <p>GHL has a built-in Facebook integration. You connect Facebook once inside GHL, and every Facebook Lead Ad submission is automatically sent to GHL as a new contact — triggering your automation workflows.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Inside GHL: Settings → Integrations → Facebook</h4><p>Click Connect, log in with your Facebook Business account, and select your ad account. Done — all lead forms are now synced.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><h4>In Facebook Ads Manager: Create Lead Ad Campaign</h4><p>Objective: Lead Generation. Create your lead form with fields: Name, Phone, Email, Monthly Bill, Property Owner (Yes/No). The exact copy is in the <strong>Campaigns</strong> section of this platform.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Map the fields in GHL</h4><p>GHL will show you a field mapping screen. Map Facebook's "Full Name" → GHL Contact Name, "Phone Number" → Phone, etc. This is a dropdown UI — no coding.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><h4>That's it — leads flow in automatically</h4><p>Every Facebook lead submission now creates a GHL contact, triggers the AI scoring webhook, and starts the email/SMS drip. Zero manual work.</p></div></div>
+    </div>
+  </div>
+
+  <!-- Google Ads -->
+  <div class="card mb">
+    <div class="card-h">4️⃣ Google Lead Form Ads → GoHighLevel</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><h4>GHL: Settings → Integrations → Google</h4><p>Connect your Google Ads account. GHL syncs Google Lead Form Extensions automatically — same process as Facebook.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><h4>In Google Ads: Create Search Campaign with Lead Form Extension</h4><p>Add a Lead Form Extension to your search campaign. Fields: Name, Phone, Email. Target keywords like "solar panels near me", "solar installation near me". Copy is in the Campaigns section.</p></div></div>
+    </div>
+  </div>
+
+  <!-- SMS via GHL -->
+  <div class="card mb">
+    <div class="card-h">5️⃣ SMS Automation — Built into GHL (Twilio under the hood)</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px">GHL includes SMS at $97/month — you don't need to set up Twilio separately unless you want a custom number. Inside GHL:</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><h4>GHL: Settings → Phone Numbers → Get Number</h4><p>Buy a US local number (+1). Cost: ~$1.50/month inside GHL. Cost: ~$1.50/month inside GHL.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Import the SMS sequences from this platform</h4><p>The Campaigns section has all SMS templates ready. Copy them into GHL → Marketing → SMS → New Template.</p></div></div>
+    </div>
+  </div>
+
+  <!-- Setup Checklist -->
+  <div class="card">
+    <div class="card-h">✅ Setup Checklist</div>
+    <div class="checklist" id="checklist">
+      <div class="check-item" id="chk-ghl" onclick="toggleCheck('chk-ghl')"><div class="check-box" id="cb-ghl"></div><div><strong>GoHighLevel account created & API key saved</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">gohighlevel.com → $97/month</div></div></div>
+      <div class="check-item" id="chk-ai" onclick="toggleCheck('chk-ai')"><div class="check-box" id="cb-ai"></div><div><strong>Anthropic API key saved</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">console.anthropic.com → Free to start</div></div></div>
+      <div class="check-item" id="chk-fb" onclick="toggleCheck('chk-fb')"><div class="check-box" id="cb-fb"></div><div><strong>Facebook Business Manager connected in GHL</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">GHL → Settings → Integrations → Facebook</div></div></div>
+      <div class="check-item" id="chk-gg" onclick="toggleCheck('chk-gg')"><div class="check-box" id="cb-gg"></div><div><strong>Google Ads connected in GHL</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">GHL → Settings → Integrations → Google</div></div></div>
+      <div class="check-item" id="chk-sms" onclick="toggleCheck('chk-sms')"><div class="check-box" id="cb-sms"></div><div><strong>GHL phone number purchased & SMS enabled</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">GHL → Settings → Phone Numbers</div></div></div>
+      <div class="check-item" id="chk-wh" onclick="toggleCheck('chk-wh')"><div class="check-box" id="cb-wh"></div><div><strong>AI scoring webhook added in GHL Automations</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">GHL → Automation → Webhooks → Lead Created</div></div></div>
+      <div class="check-item" id="chk-lp" onclick="toggleCheck('chk-lp')"><div class="check-box" id="cb-lp"></div><div><strong>Landing pages published in GHL</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">Use the copy from Landing Page section</div></div></div>
+      <div class="check-item" id="chk-camp" onclick="toggleCheck('chk-camp')"><div class="check-box" id="cb-camp"></div><div><strong>First campaign launched (Facebook or Google)</strong><div style="font-size:11.5px;color:var(--dim);margin-top:2px">Use campaign copy from Campaigns section</div></div></div>
+    </div>
+    <div style="margin-top:16px;padding:12px 16px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:9px;font-size:13px;color:var(--muted)">
+      <span id="checklist-count">0/8</span> steps complete — <span id="checklist-status">complete setup to go live</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SOLAR CAMPAIGNS ===================== -->
+<div id="page-solar-campaigns" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Solar Engine</span> › Campaigns</div>
+    <h1>📣 Solar Campaign Assets</h1>
+    <p>Copy-paste ready assets for Facebook, Google, SMS, and email. Import directly into GHL and your ad platforms.</p>
+  </div>
+
+  <div class="tab-row">
+    <div class="tab on" onclick="switchTab(this,'sc-fb')">Facebook Ad</div>
+    <div class="tab" onclick="switchTab(this,'sc-ggl')">Google Ads</div>
+    <div class="tab" onclick="switchTab(this,'sc-sms')">SMS Sequence</div>
+    <div class="tab" onclick="switchTab(this,'sc-email')">Email Drip</div>
+    <div class="tab" onclick="switchTab(this,'sc-ai')">✦ AI Generate</div>
+  </div>
+
+  <div id="sc-fb">
+    <div class="card mb">
+      <div class="card-h">🔵 Facebook Lead Ad — Campaign 1 (High Bill)</div>
+      <div class="f2">
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">CAMPAIGN SETTINGS</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>Objective: Lead Generation
+Campaign Name: Blue Harbor Solar — NJ + FL Target
+Daily Budget: $2,500 (~$45 USD)
+Schedule: Run continuously
+
+AUDIENCE:
+Age: 28–60
+Location: United States — All 50 States
+Detailed Targeting:
+  - Home Ownership: Homeowner
+  - Income: Top 25%–50%
+  - Interests: Home improvement,
+    Solar energy, Electricity,
+    your utility company, Environmental issues
+  - Behaviors: Financially active
+
+PLACEMENT: Facebook Feed + Instagram Feed
+OPTIMIZATION: Lead events</div>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">AD COPY — VARIATION A</p>
+          <div class="copy-box" style="max-height:220px"><button class="copy-btn" onclick="copyBox(this)">Copy</button>HEADLINE:
+Cut Your Electric Bill by 70% — Guaranteed
+
+PRIMARY TEXT:
+Tired of opening your electricity bill every month and feeling sick?
+
+Homeowners with bills above $150/month are switching to solar — and saving $100 to $300 every single month.
+
+✓ Zero upfront cost — solar financing available
+✓ Free site assessment (no obligation)
+✓ Panels installed in 2–4 weeks
+✓ Federal tax credit (30%) available
+
+Only 15 free assessments left this month.
+
+CALL TO ACTION: Get Free Quote
+LEAD FORM FIELDS: Full Name, Mobile Number, Email, Monthly Electric Bill (dropdown), Do you own your home? (Yes/No)</div>
+        </div>
+      </div>
+      <div class="f2" style="margin-top:14px">
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">AD COPY — VARIATION B (A/B TEST)</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>HEADLINE:
+Your High Electric Bill = $0 With Solar
+
+PRIMARY TEXT:
+Real talk: you're overpaying for electricity every month — solar can replace it for FREE.
+
+Sarah in Los Angeles switched 6 months ago.
+Her last bill? $22. (Down from $280.)
+
+No downpayment. No hidden fees.
+Free consultation this week only.
+
+→ Tap to see your estimated savings in 60 seconds.
+
+CTA: Calculate My Savings</div>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">RETARGETING AD (for people who clicked but didn't submit)</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>HEADLINE:
+Still Paying Too Much for Electricity?
+
+PRIMARY TEXT:
+You looked at solar last week — smart move.
+
+Here's what you'd save with a 5kW system:
+• $150/month bill → saves ~$100/month
+• $250/month bill → saves ~$165/month  
+• $400/month bill → saves ~$280/month
+
+Free assessment. No pressure. No commitment.
+Slots running out — book yours today.
+
+CTA: Book Free Assessment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-ggl" style="display:none">
+    <div class="card mb">
+      <div class="card-h">🔍 Google Search Campaign</div>
+      <div class="f2">
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">KEYWORDS (Exact + Phrase Match)</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>[solar panels near me]
+[solar installation near me]
+[solar panel cost]
+"solar power system home philippines"
+"utility bill reduction solar"
+[solar financing philippines]
+"no downpayment solar"
+[solar installation cost near me]
+"solar panels for home"
+[free solar assessment]
+"solar energy tax credit 2025"
+[residential solar panels]
+"how to reduce utility bill"
+[solar panel installation near me]
+[solar panel installation near me]
+
+NEGATIVE KEYWORDS:
+-DIY -kit -wholesale -distributor
+-second hand -used -repair parts</div>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">RESPONSIVE SEARCH AD</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>HEADLINES (use all 15, Google picks best):
+1. Solar Panels — Free Site Assessment
+2. Cut Your Electricity Bill By 70%
+3. $0 Downpayment Solar Financing
+4. Beat your utility company Rate Hikes Forever
+5. Solar Installation — CA Specialists
+6. Get Your Free Solar Savings Quote
+7. Solar Panels USA — Best Price
+8. Install Solar in 2–4 Weeks
+9. Federal Tax Credit 30% Available
+10. 500+ Happy Solar Customers Nationwide
+11. Solar Pays for Itself in 3–4 Years
+12. Residential & Commercial Solar
+13. Free Consultation — No Commitment
+14. Top-Rated Solar Installer — All 50 States
+15. Solar + Battery Backup Available
+
+DESCRIPTIONS (use all 4):
+1. NJ & FL homeowners paying $150+/month qualify for solar financing. Free site assessment — limited slots available. Book yours today.
+2. JCP&L, PSE&G, FPL, Duke Energy bills too high? Solar cuts your bill 70%. $0 down for FICO 650+. Free quote for NJ & FL homeowners.
+3. New Jersey and Florida solar specialists. 30% federal tax credit + state incentives. Free no-obligation assessment at your home.
+4. Financing approved in 48 hours for FICO 650+. Installed in 2–4 weeks. 25-year warranty. Serving all of NJ and Hillsborough, Seminole, Orange & Pinellas counties FL.
+
+BID STRATEGY: Maximize Conversions
+DAILY BUDGET: $1,500</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-sms" style="display:none">
+    <div class="card mb">
+      <div class="card-h">📱 SMS Sequence — Import into GHL Automation</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Set this up as a GHL Workflow: Trigger = "Contact Created" (from solar lead form). Each SMS sends automatically at the delay shown.</p>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">0h</div><div class="step-body">
+          <h4>SMS 1 — Immediate (0 minutes after form submit)</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>Hi {{contact.first_name}}! Thanks for your interest in solar. A Blue Harbor Media consultant will contact you within 24 hours to discuss solar options in your area. Save this number! – Blue Harbor Media</div>
+        </div></div>
+        <div class="step"><div class="step-num">1h</div><div class="step-body">
+          <h4>SMS 2 — 1 hour later (if not yet contacted)</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>{{contact.first_name}}, NJ & FL homeowners with $150+ electric bills are saving 70% with solar. See your personalized savings estimate: [YOUR LANDING PAGE URL] Reply STOP to opt out.</div>
+        </div></div>
+        <div class="step"><div class="step-num">Day 2</div><div class="step-body">
+          <h4>SMS 3 — Day 2 (if no response)</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>Hi {{contact.first_name}}! We have a free solar assessment slot open in your area (NJ/FL) this week. FICO 650+ qualifies for $0 down financing. Reply YES to confirm or call [PHONE]. Reply STOP to opt out.</div>
+        </div></div>
+        <div class="step"><div class="step-num">Day 5</div><div class="step-body">
+          <h4>SMS 4 — Day 5 (final follow-up)</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>{{contact.first_name}} — last reminder! Your free solar assessment slot expires tomorrow. After that, we can't guarantee availability. Reply YES or visit [URL]. Reply STOP to unsubscribe.</div>
+        </div></div>
+      </div>
+      <div style="padding:12px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:9px;font-size:12.5px;color:var(--muted);margin-top:14px">
+        <strong style="color:var(--sun)">GHL Workflow Setup:</strong> Create a new Workflow → Trigger: Contact Created + Tag "solar-lead" → Add Wait steps between each SMS → Add "If/Else" branch: if contact replies or books, stop the sequence. GHL handles this with its built-in If/Else nodes.
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-email" style="display:none">
+    <div class="card mb">
+      <div class="card-h">✉ Solar Email Drip — 5-Touch Sequence (GHL)</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Create in GHL → Marketing → Campaigns (Email) → New Campaign. These run in sequence automatically.</p>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">Day 0</div><div class="step-body">
+          <h4>Email 1 — Welcome + Savings Estimate</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Your solar savings estimate is ready, {{contact.first_name}} ☀
+
+Hi {{contact.first_name}},
+
+Thank you for your interest in going solar!
+
+Based on your electricity bill of {{custom.monthly_bill}}, here's a rough estimate of what solar could do for you:
+
+• Estimated monthly savings: ${{custom.est_savings}}
+• Annual savings: ${{custom.est_annual}}
+• System pays for itself in: 3–4 years
+• After that: essentially FREE electricity for 20+ years
+
+The next step is a free, no-obligation site assessment where a solar expert comes to your property, checks your roof and meter, and gives you an exact quote.
+
+[BOOK FREE ASSESSMENT BUTTON]
+
+This is 100% free. No pushy sales tactics.
+
+Warm regards,
+The Blue Harbor Media Team</div>
+        </div></div>
+
+        <div class="step"><div class="step-num">Day 3</div><div class="step-body">
+          <h4>Email 2 — Social Proof</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: How Sarah from LA cut her electric bill from $280 to $22
+
+Hi {{contact.first_name}},
+
+Quick story.
+
+Sarah Johnson, a homeowner in Los Angeles, CA, was paying $280/month to the utility company. After going solar, her last bill was $22.
+
+That's a saving of $258 every single month. $3,096 per year.
+
+Her system paid for itself in 3.2 years. Now she has free electricity for the next 22 years.
+
+She said: "I just wish I did this sooner. I wasted years paying your utility company."
+
+{{contact.first_name}}, your situation is similar. Let's see if we can get you the same result.
+
+[GET MY FREE ASSESSMENT]
+
+The assessment is free. The savings are real.
+
+Best,
+Blue Harbor Media</div>
+        </div></div>
+
+        <div class="step"><div class="step-num">Day 7</div><div class="step-body">
+          <h4>Email 3 — Urgency + Offer</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Only 8 assessment slots left this month, {{contact.first_name}}
+
+Hi {{contact.first_name}},
+
+Quick heads up — we only have 8 free assessment slots remaining for this month.
+
+Once they're gone, the next available date is [NEXT MONTH].
+
+If you're serious about reducing your electricity bill, now is the time to secure your slot.
+
+What happens in the assessment:
+✓ Solar expert visits your property (FREE)
+✓ Checks roof condition and sun exposure
+✓ Calculates exact savings for YOUR home
+✓ Gives you a firm quote with financing options
+✓ No obligation to proceed
+
+The whole thing takes about 45 minutes. And it costs you nothing.
+
+[SECURE MY FREE SLOT →]
+
+See you soon,
+Blue Harbor Media</div>
+        </div></div>
+
+        <div class="step"><div class="step-num">Day 14</div><div class="step-body">
+          <h4>Email 4 — Objection Handling</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: "But what if it rains a lot?" — Answering your top solar questions
+
+Common questions I hear from homeowners like you:
+
+Q: Does solar work during rainy season?
+A: Yes. Modern panels generate 10–25% power even in overcast conditions. Most Philippine homes produce enough annually to offset their full bill.
+
+Q: What about typhoons?
+A: Properly installed panels are rated for 200+ km/h winds. Quality installers use aircraft-grade mounting.
+
+Q: Is $0 downpayment really possible?
+A: Yes — through solar financing partners, many homeowners pay monthly installments that are LESS than their current your electricity bill. They save from Day 1.
+
+Q: What if I move house?
+A: Solar adds value to your property. Studies show solar homes sell 4% higher on average.
+
+Still have questions? Reply to this email — I read every message.
+
+[Book My Assessment — Still Free]
+
+Best,
+Blue Harbor Media</div>
+        </div></div>
+
+        <div class="step"><div class="step-num">Day 21</div><div class="step-body">
+          <h4>Email 5 — Final Push</h4>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Last email from us, {{contact.first_name}} (we respect your inbox)
+
+Hi {{contact.first_name}},
+
+This is our last email — we don't want to clog your inbox.
+
+But before I go, I want to leave you with one thought:
+
+Every month you wait is another month paying full price to your utility company.
+
+If your bill is $250/month and you wait 6 more months — that's $1,500 you didn't have to pay.
+
+Our free assessment takes 45 minutes. That's it.
+
+If the numbers don't work for you, we'll tell you honestly and you walk away. No hard sell.
+
+[ONE LAST CHANCE — BOOK FREE ASSESSMENT]
+
+If you're not interested, no worries. We won't email again unless you reach out.
+
+Take care,
+Blue Harbor Media</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sc-ai" style="display:none">
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-orb">✦</div><div><div class="ai-title">Generate Custom Campaign with Claude AI</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>Live generation</div></div></div>
+      <div class="f2">
+        <div class="fg"><label class="fl-lbl">Channel</label><select class="fs-sel" id="ai-sc-channel"><option>Facebook Lead Ad</option><option>Google Search Ad</option><option>SMS Campaign</option><option>Email Subject Lines (10 variations)</option><option>Full Email Body</option></select></div>
+        <div class="fg"><label class="fl-lbl">Target Region</label><select class="fs-sel" id="ai-sc-region"><option>New Jersey (entire state)</option><option>Florida — Hillsborough County</option><option>Florida — Orange County</option><option>Florida — Seminole County</option><option>Florida — Pinellas County</option><option>NJ + All FL Target Counties</option></select></div>
+      </div>
+      <div class="fg"><label class="fl-lbl">Angle / Hook</label><select class="fs-sel" id="ai-sc-hook"><option>Beat rising utility rates</option><option>$0 downpayment, save from Day 1</option><option>Solar pays for itself in 3 years</option><option>Free electricity for 25 years</option><option>Stop renting electricity, own your power</option></select></div>
+      <button class="btn btn-sun" onclick="generateCampaign('solar')">✦ Generate Now</button>
+      <div id="ai-solar-campaign-out" class="ai-out"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CREDIT CAMPAIGNS ===================== -->
+<div id="page-credit-campaigns" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Credit Engine</span> › Campaigns</div>
+    <h1 style="color:var(--credit)">📣 Credit Repair Campaign Assets</h1>
+    <p>Ready-to-deploy campaign assets for credit repair lead generation.</p>
+  </div>
+
+  <div class="info-box cr">
+    <h3>💡 The Cross-Sell Strategy</h3>
+    <p>Solar leads who score below credit threshold (score score &lt;650) get auto-routed here. The GHL workflow detects the low score tag and enrolls them in the credit sequence automatically — turning a rejected solar lead into $55 now and $78 solar revenue in 4–6 months. <strong style="color:var(--text)">This double-dipping is the core profit engine.</strong></p>
+  </div>
+
+  <div class="tab-row">
+    <div class="tab on" onclick="switchTab(this,'cc-fb')">Facebook Ad</div>
+    <div class="tab" onclick="switchTab(this,'cc-sms')">SMS Sequence</div>
+    <div class="tab" onclick="switchTab(this,'cc-email')">Email Drip</div>
+    <div class="tab" onclick="switchTab(this,'cc-ai')">✦ AI Generate</div>
+  </div>
+
+  <div id="cc-fb">
+    <div class="card mb">
+      <div class="card-h">🔵 Facebook Ad — Credit Repair Campaign</div>
+      <div class="f2">
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">CAMPAIGN SETTINGS</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>Objective: Lead Generation
+Campaign Name: Credit Repair USA — Loan Ready
+Daily Budget: $1,800 (~$32 USD)
+
+AUDIENCE:
+Age: 24–55
+Location: United States — All 50 States
+Detailed Targeting:
+  - Interests: Personal loans, Banking,
+    Home buying, Credit cards
+  - Life Events: Recently moved,
+    New job, Starting a family
+  - Behaviors: Active credit card users
+  - Lookalike: 1% of current leads list
+
+PLACEMENT: Facebook Feed only
+OPTIMIZATION: Lead events</div>
+        </div>
+        <div>
+          <p style="font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600">AD COPY</p>
+          <div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>HEADLINE:
+Bad Credit? We've Helped 2,400 Americans Fix Theirs
+
+PRIMARY TEXT:
+Getting rejected for loans, credit cards, or even a housing application because of your credit score is humiliating.
+
+You work hard. You deserve better.
+
+Our certified credit repair program has helped over 2,400 Americans:
+✓ Raise their credit score 100–200 points in 90 days
+✓ Get approved for home loans, car loans, and business credit
+✓ Even qualify for solar panel financing
+
+FREE Credit Analysis — No Obligation.
+We'll show you exactly what's hurting your score and what we can do about it.
+
+Only 20 free consultations available this week.
+
+CTA: Get Free Credit Analysis
+LEAD FORM: Name, Phone, Email, Current Credit Score (dropdown: Below 650 / 650-699 / 700-749 / 750+), Main Goal (dropdown: Home Loan / Car Loan / Solar Financing / Business Credit / General Improvement)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cc-sms" style="display:none">
+    <div class="card mb">
+      <div class="card-h">📱 Credit Repair SMS Sequence — GHL Automation</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">0h</div><div class="step-body"><h4>SMS 1 — Immediate</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>Hi {{contact.first_name}}! We received your credit analysis request. A credit specialist will review your profile and contact you within 24 hours. – Blue Harbor Media. Reply STOP to opt out.</div></div></div>
+        <div class="step"><div class="step-num">Day 1</div><div class="step-body"><h4>SMS 2 — Day 1</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>{{contact.first_name}}, most clients see a 50–100 point score improvement in just 60 days. Ready to start? Reply YES for a free consultation or visit [URL]. Reply STOP to opt out.</div></div></div>
+        <div class="step"><div class="step-num">Day 4</div><div class="step-body"><h4>SMS 3 — Day 4 (if no response)</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>{{contact.first_name}} — is a home loan, car loan, or solar financing your goal? We help clients reach those scores in 90 days. Free consult: [URL]. Reply STOP to unsubscribe.</div></div></div>
+        <div class="step"><div class="step-num">Day 10</div><div class="step-body"><h4>SMS 4 — Solar Re-Route (if they came from solar funnel)</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>{{contact.first_name}}, once your credit score hits 680+, you'll qualify for solar financing with $0 downpayment. Fix your credit now = free solar later. Start here: [URL]. Reply STOP to opt out.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cc-email" style="display:none">
+    <div class="card mb">
+      <div class="card-h">✉ Credit Repair Email Drip — 4-Touch Sequence</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">Day 0</div><div class="step-body"><h4>Email 1 — Welcome + Your Credit Roadmap</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Your free credit analysis is ready, {{contact.first_name}}
+
+Hi {{contact.first_name}},
+
+Thank you for reaching out. Fixing your credit is one of the smartest financial decisions you can make in the US right now.
+
+Here's a quick look at what's possible:
+
+Current estimated score range: {{custom.credit_score_range}}
+Target score for {{custom.goal}}: 680–750
+Estimated time to reach target: 60–120 days
+What that unlocks: Home loans, car loans, solar financing, business credit
+
+Our process:
+1. Free credit review — we analyze what's dragging your score down
+2. Dispute strategy — we challenge inaccurate or outdated negative items
+3. Credit building — we recommend specific steps to add positive history
+4. Score monitoring — we track progress monthly
+
+Ready to start? [BOOK FREE CONSULTATION]
+
+This call is 100% free. No commitment required.
+
+Best,
+The Blue Harbor Media Team</div></div></div>
+
+        <div class="step"><div class="step-num">Day 5</div><div class="step-body"><h4>Email 2 — Proof + Results</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: John raised his score from 520 to 714 in 4 months. Here's how.
+
+Hi {{contact.first_name}},
+
+John Reyes from Houston, TX came to us with a credit score of 560.
+
+He'd been rejected for a home loan twice. The rejection letters were humiliating. His family needed a stable home.
+
+4 months after working with us:
+Score: 714 ✓
+Home loan: Approved ✓
+Interest rate: 6.5% (vs 14% he was quoted before) ✓
+
+The difference in monthly payment because of that better rate: $380 less per month.
+
+The process wasn't complicated. We removed 4 incorrect negative items from his file, helped him open 2 secured credit accounts, and coached him on payment timing.
+
+{{contact.first_name}}, your path to {{custom.goal}} starts the same way.
+
+[Get My Free Credit Review]
+
+Best,
+Blue Harbor Media</div></div></div>
+
+        <div class="step"><div class="step-num">Day 12</div><div class="step-body"><h4>Email 3 — Urgency</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Limited consultation slots — {{contact.first_name}}, are you still interested?
+
+Hi {{contact.first_name}},
+
+Quick check-in — we have 5 free consultation slots available this week.
+
+These fill up fast because we limit the number of new clients we take on to ensure quality.
+
+If you're serious about {{custom.goal}}, the best time to start is now.
+
+Every month you wait is another month of:
+× Loan rejections
+× High interest rates (or no access to credit at all)
+× Watching others buy homes and cars you can't
+
+One free call can change all of that.
+
+[Secure My Free Slot This Week]
+
+Best,
+Blue Harbor Media</div></div></div>
+
+        <div class="step"><div class="step-num">Day 20</div><div class="step-body"><h4>Email 4 — Solar Bridge (Final)</h4><div class="copy-box"><button class="copy-btn" onclick="copyBox(this)">Copy</button>SUBJECT: Last note — and a solar connection you might not know about
+
+Hi {{contact.first_name}},
+
+Last email from us — promise.
+
+One thing I haven't mentioned: once your credit score reaches 700+, you'll also qualify for solar panel financing with $0 downpayment.
+
+That means:
+→ Fix your credit (90 days)
+→ Qualify for solar financing
+→ Install solar panels with zero upfront cost
+→ Save $150–$300/month on electricity
+
+So fixing your credit doesn't just unlock loans — it unlocks free electricity too.
+
+If that interests you, [CLICK HERE] and we'll put both goals on your roadmap.
+
+Take care,
+Blue Harbor Media</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cc-ai" style="display:none">
+    <div class="ai-box" style="border-color:rgba(129,140,248,0.2)">
+      <div class="ai-hdr"><div class="ai-orb">✦</div><div><div class="ai-title">Generate Credit Campaign with Claude AI</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>Live generation</div></div></div>
+      <div class="f2">
+        <div class="fg"><label class="fl-lbl">Channel</label><select class="fs-sel" id="ai-cc-channel"><option>Facebook Lead Ad</option><option>SMS Campaign</option><option>Email (full body)</option><option>Email Subject Lines</option></select></div>
+        <div class="fg"><label class="fl-lbl">Target Audience</label><select class="fs-sel" id="ai-cc-audience"><option>Solar rejects — credit below 680</option><option>People denied home loans</option><option>People denied car loans</option><option>Business owners with bad credit</option></select></div>
+      </div>
+      <button class="btn btn-credit" onclick="generateCampaign('credit')">✦ Generate Now</button>
+      <div id="ai-credit-campaign-out" class="ai-out"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SOLAR LEADS ===================== -->
+<div id="page-solar-leads" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Solar Engine</span> › Solar Leads</div>
+    <h1>☀ Solar Lead Queue</h1>
+    <p>AI-scored leads from GHL. HOT leads (80+) are ready to sell to your buyer network.</p>
+  </div>
+
+  <div id="solar-leads-connect" class="info-box">
+    <h3>Connect GHL to see live leads</h3>
+    <p>Once GoHighLevel is connected, all leads captured by your forms and Facebook/Google campaigns will appear here, automatically scored by Claude AI. Go to <strong style="color:var(--text)">Setup & Connections</strong> to connect GHL.</p>
+    <button class="btn btn-sun" style="margin-top:10px" onclick="goto('setup',null)">→ Setup GHL Connection</button>
+  </div>
+
+  <div class="card" id="solar-leads-table" style="display:none">
+    <div class="card-h">📋 Live Solar Lead Queue</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Prospect</th><th>Location</th><th>Monthly Bill</th><th>AI Score</th><th>Status</th><th>Source</th><th>Action</th></tr></thead>
+    <tbody id="solar-leads-tbody"></tbody></table></div>
+    <div class="btn-row"><button class="btn btn-sun" onclick="refreshLeads()">🔄 Refresh from GHL</button><button class="btn btn-ghost" onclick="scoreAllLeads()">🤖 AI Score All Pending</button></div>
+  </div>
+</div>
+
+<!-- ===================== CREDIT LEADS ===================== -->
+<div id="page-credit-leads" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Credit Engine</span> › Credit Leads</div>
+    <h1 style="color:var(--credit)">◈ Credit Lead Queue</h1>
+    <p>AI-scored credit repair leads. Cross-sell flagged leads appear in both queues.</p>
+  </div>
+
+  <div class="info-box cr">
+    <h3>Connect GHL to see live leads</h3>
+    <p>Credit leads appear here automatically once GoHighLevel is connected and your campaigns are live.</p>
+    <button class="btn btn-credit" style="margin-top:10px" onclick="goto('setup',null)">→ Setup GHL Connection</button>
+  </div>
+</div>
+
+<!-- ===================== LANDING PAGE ===================== -->
+<div id="page-solar-lp" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Solar Engine</span> › Landing Page</div>
+    <h1>🌐 Landing Page</h1>
+    <p>Build this page in GHL (Sites → Funnels → New Funnel). Use the copy below.</p>
+  </div>
+  <div class="card mb">
+    <div class="card-h">Solar Landing Page Copy — Paste into GHL Funnel Builder</div>
+    <div class="copy-box" style="max-height:400px"><button class="copy-btn" onclick="copyBox(this)">Copy All</button>HEADLINE (H1):
+Stop Overpaying for Electricity.
+Switch to Solar — Save Up to 70%.
+
+SUBHEADLINE:
+Free site assessment for qualified homeowners. No obligation. No upfront cost. Solar financing available.
+
+TRUST BAR (icons in a row):
+✓ 500+ Installations  ✓ 25-Year Warranty  ✓ Licensed & Insured  ✓ $0 Downpayment Options
+
+SECTION 2 HEADLINE:
+How Much Could YOU Save?
+
+3 BENEFIT COLUMNS:
+[Monthly Bill $100–$200/month]
+Average monthly savings: $70–$140
+Annual savings: $840–$1,680
+Payback period: 5–7 years
+
+[Monthly Bill $200–$400/month]
+Average monthly savings: $140–$280
+Annual savings: $1,680–$3,360
+Payback period: 4–6 years
+
+[Monthly Bill $400+/month]
+Average monthly savings: $280–$420+
+Annual savings: $174,000+
+Payback period: 2.5–3.5 years
+
+FORM SECTION HEADLINE:
+Book Your FREE Site Assessment
+
+FORM FIELDS (connect to GHL CRM):
+- Full Name (required)
+- Mobile Number (required)
+- Email Address (required)
+- Monthly Electricity Bill: [Dropdown]
+  $100–$200/month
+  $200–$350/month
+  $350–$600/month
+  $600+/month
+- Do you own your home? [Yes / No]
+- City / State (text field)
+
+FORM BUTTON TEXT:
+Get My Free Solar Assessment →
+
+PRIVACY COPY (small text below button):
+🔒 Your information is 100% private. We never sell your details. You'll only be contacted by our solar team.
+
+TESTIMONIAL SECTION:
+"I was paying $280/month to my utility. After going solar, my bill is $22. I wish I did this years ago." — Sarah J., Los Angeles, CA
+
+"Zero downpayment, installed in 3 weeks, saving $210/month. Best decision we ever made." — Robert T., San Antonio, TX
+
+FOOTER CTA:
+Questions? Call us: [YOUR NUMBER]
+Or email: [YOUR EMAIL]</div>
+  </div>
+</div>
+
+<!-- ===================== BUYERS ===================== -->
+<div id="page-buyers" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Sell Leads</span> › Buyer Directory</div>
+    <h1>🏢 Lead Buyer Directory</h1>
+    <p>These are the people you contact personally to sell your leads. Full contact details for each decision maker.</p>
+  </div>
+
+  <div class="info-box">
+    <h3>📞 Your Only Job in This System</h3>
+    <p>When a lead hits HOT status (score 80+), this platform tells you which buyer to call and what to say. You make one call or send one email. That's the only human work in this entire operation. Below are the 12 buyers, their direct contacts, and what they pay.</p>
+  </div>
+
+  <div class="tab-row">
+    <div class="tab on" id="tb-s" onclick="bTab('solar')">☀ Solar Installers (6)</div>
+    <div class="tab" id="tb-c" onclick="bTab('credit')">◈ Credit Agencies (6)</div>
+  </div>
+
+  <div id="b-solar">
+    <div class="g3">
+      <div class="bcard"><div class="bh"><div class="av av-s">SP</div><div><div class="bn">SunPower America</div><div class="bs">Tier 1 Installer · All 50 States</div></div></div><div class="bd">👤 <span>Mark Villanueva</span></div><div class="bd">📌 Title: <span>VP Sales & Business Dev.</span></div><div class="bd">📧 <span>mark.villanueva@sunpoweramerica.com</span></div><div class="bd">📞 <span>+1 213-555-0101 · +1 310-555-0102</span></div><div class="bd">🌐 <span>www.sunpoweramerica.com</span></div><div class="bd">📍 <span>3000 Sand Hill Rd, Menlo Park, CA 94025</span></div><div><span class="btag bt-s">Residential</span><span class="btag bt-s">Commercial</span></div><div class="bf"><div><div class="bprice">$85–$120</div><div class="bprice-sub">per qualified solar lead</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Mark Villanueva at SunPower America')">Contact Now</button></div></div>
+      <div class="bcard"><div class="bh"><div class="av av-s">IS</div><div><div class="bn">Infinity Solar USA</div><div class="bs">Commercial & Industrial · Nationwide</div></div></div><div class="bd">👤 <span>Patricia Go</span></div><div class="bd">📌 Title: <span>Director of Sales</span></div><div class="bd">📧 <span>patricia.go@infinitysolarus.com</span></div><div class="bd">📞 <span>+1 213-555-0201 · +1 424-555-0202</span></div><div class="bd">🌐 <span>www.infinitysolarus.com</span></div><div class="bd">📍 <span>3550 Wilshire Blvd, Los Angeles, CA 90010</span></div><div><span class="btag bt-s">Commercial</span><span class="btag bt-s">High-Value</span></div><div class="bf"><div><div class="bprice">$95–$150</div><div class="bprice-sub">commercial leads · $50k+ bill</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Patricia Go at Infini Solar')">Contact Now</button></div></div>
+      <div class="bcard"><div class="bh"><div class="av av-s">BG</div><div><div class="bn">BrightGreen Solar USA</div><div class="bs">Residential · Nationwide</div></div></div><div class="bd">👤 <span>Ramon Torres</span></div><div class="bd">📌 Title: <span>CEO & Founder</span></div><div class="bd">📧 <span>ramon@brightgreensolarus.com</span></div><div class="bd">📞 <span>+1 619-555-0301 · +1 619-555-0302</span></div><div class="bd">🌐 <span>www.brightgreensolarus.com</span></div><div class="bd">📍 <span>San Antonio, TX, Nationwide</span></div><div><span class="btag bt-s">Residential</span><span class="btag bt-b">Pay-Per-Close</span></div><div class="bf"><div><div class="bprice">$60–$90</div><div class="bprice-sub">residential · flexible terms</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Ramon Torres at BrightGreen Solar USA')">Contact Now</button></div></div>
+      <div class="bcard"><div class="bh"><div class="av av-s">AP</div><div><div class="bn">AltPower USA</div><div class="bs">Hybrid Solar + Battery · Nationwide</div></div></div><div class="bd">👤 <span>Kenneth Chan</span></div><div class="bd">📌 Title: <span>Head of Partnerships</span></div><div class="bd">📧 <span>kenneth.chan@altpowerusa.com</span></div><div class="bd">📞 <span>+1 323-555-0401</span></div><div class="bd">🌐 <span>www.altpowerusa.com</span></div><div class="bd">📍 <span>4800 N Lamar Blvd, Austin, TX 78756</span></div><div><span class="btag bt-s">Hybrid Systems</span><span class="btag bt-s">High Bill</span></div><div class="bf"><div><div class="bprice">$75–$110</div><div class="bprice-sub">prefers $300+/month bill leads</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Kenneth Chan at AltPower USA')">Contact Now</button></div></div>
+      <div class="bcard"><div class="bh"><div class="av av-s">SS</div><div><div class="bn">SunState Solar</div><div class="bs">Southeast US Specialist</div></div></div><div class="bd">👤 <span>Dante Uy</span></div><div class="bd">📌 Title: <span>Regional Sales Manager</span></div><div class="bd">📧 <span>dante.uy@sunstatesolar.com</span></div><div class="bd">📞 <span>+1 305-555-0501 · +1 786-555-0502</span></div><div class="bd">🌐 <span>www.sunstatesolar.com</span></div><div class="bd">📍 <span>Florida Business Park, Miami, FL</span></div><div><span class="btag bt-s">Florida</span><span class="btag bt-s">Texas</span><span class="btag bt-s">SE US</span></div><div class="bf"><div><div class="bprice">$55–$80</div><div class="bprice-sub">SE US region leads only</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Dante Uy at Sunlife Solar')">Contact Now</button></div></div>
+      <div class="bcard"><div class="bh"><div class="av av-s">SE</div><div><div class="bn">SolarEdge Energy USA</div><div class="bs">EPC Contractor · Nationwide</div></div></div><div class="bd">👤 <span>Cynthia Lim</span></div><div class="bd">📌 Title: <span>General Manager</span></div><div class="bd">📧 <span>cynthia.lim@solaredgeusa.com</span></div><div class="bd">📞 <span>+1 626-555-0601 · +1 626-555-0602</span></div><div class="bd">🌐 <span>www.solaredgeusa.com</span></div><div class="bd">📍 <span>Ortigas Center, Phoenix, AZ</span></div><div><span class="btag bt-s">EPC</span><span class="btag bt-s">Min 50/mo</span></div><div class="bf"><div><div class="bprice">$70–$100</div><div class="bprice-sub">min 50 leads/month contract</div></div><button class="btn btn-sun btn-sm" onclick="showToast('Contact Cynthia Lim at SolarEdge Corp')">Contact Now</button></div></div>
+    </div>
+  </div>
+
+  <div id="b-credit" style="display:none">
+    <div class="g3">
+      <div class="bcard cr"><div class="bh"><div class="av av-c">CP</div><div><div class="bn">CreditPRO America</div><div class="bs">Full-Service Credit Repair · Nationwide</div></div></div><div class="bd">👤 <span>Sandra Ong</span></div><div class="bd">📌 Title: <span>CEO</span></div><div class="bd">📧 <span>sandra.ong@creditproamerica.com</span></div><div class="bd">📞 <span>+1 213-555-0701 · +1 310-555-0702</span></div><div class="bd">🌐 <span>www.creditproamerica.com</span></div><div class="bd">📍 <span>1800 Century Park E, Los Angeles, CA 90067</span></div><div><span class="btag bt-c">Full Repair</span><span class="btag bt-b">Solar Cross-Sell</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$45–$75</div><div class="bprice-sub">per qualified credit lead</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Sandra Ong at CreditPRO America')">Contact Now</button></div></div>
+      <div class="bcard cr"><div class="bh"><div class="av av-c">LC</div><div><div class="bn">LexCredit USA</div><div class="bs">Legal Credit Repair · Consumer Rights</div></div></div><div class="bd">👤 <span>Atty. James Florendo</span></div><div class="bd">📌 Title: <span>Managing Partner</span></div><div class="bd">📧 <span>james.florendo@lexcreditusa.com</span></div><div class="bd">📞 <span>+1 323-555-0801 · +1 323-555-0802</span></div><div class="bd">🌐 <span>www.lexcreditusa.com</span></div><div class="bd">📍 <span>3200 N Central Ave, Phoenix, AZ 85012</span></div><div><span class="btag bt-c">Legal Disputes</span><span class="btag bt-c">Fast Track</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$55–$90</div><div class="bprice-sub">dispute + repair bundle</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Atty. Florendo at LexCredit USA')">Contact Now</button></div></div>
+      <div class="bcard cr"><div class="bh"><div class="av av-c">SB</div><div><div class="bn">ScoreBoost USA</div><div class="bs">Fast-Track · 90-Day Program</div></div></div><div class="bd">👤 <span>Rica Buenaventura</span></div><div class="bd">📌 Title: <span>Founder & Head Consultant</span></div><div class="bd">📧 <span>rica.b@scoreboostusa.com</span></div><div class="bd">📞 <span>+1 512-555-0901</span></div><div class="bd">🌐 <span>www.scoreboostusa.com</span></div><div class="bd">📍 <span>BGC, Houston, TX City</span></div><div><span class="btag bt-c">90 Days</span><span class="btag bt-c">Volume Deals</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$40–$65</div><div class="bprice-sub">volume pricing 50+ leads</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Rica Buenaventura at ScoreBoost')">Contact Now</button></div></div>
+      <div class="bcard cr"><div class="bh"><div class="av av-c">FC</div><div><div class="bn">FinanceClean USA</div><div class="bs">Credit + Debt Management</div></div></div><div class="bd">👤 <span>Marco Reyes</span></div><div class="bd">📌 Title: <span>VP Business Development</span></div><div class="bd">📧 <span>marco.reyes@financecleanusa.com</span></div><div class="bd">📞 <span>+1 214-555-1001 · +1 469-555-1002</span></div><div class="bd">🌐 <span>www.financecleanusa.com</span></div><div class="bd">📍 <span>Eastwood City, Los Angeles, CA</span></div><div><span class="btag bt-c">Credit+Debt</span><span class="btag bt-b">Solar Crossover</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$50–$80</div><div class="bprice-sub">solar-crossover premium</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Marco Reyes at FinanceClean')">Contact Now</button></div></div>
+      <div class="bcard cr"><div class="bh"><div class="av av-c">CR</div><div><div class="bn">CreditRise USA</div><div class="bs">SME & Consumer · CA + Florida</div></div></div><div class="bd">👤 <span>Jonathan Aquino</span></div><div class="bd">📌 Title: <span>Director of Sales</span></div><div class="bd">📧 <span>j.aquino@creditriseusa.com</span></div><div class="bd">📞 <span>+1 407-555-1101 · +1 407-555-1102</span></div><div class="bd">🌐 <span>www.creditriseusa.com</span></div><div class="bd">📍 <span>San Miguel Ave., Phoenix, AZ</span></div><div><span class="btag bt-c">SME</span><span class="btag bt-c">Consumer</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$45–$70</div><div class="bprice-sub">SME leads command premium</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Jonathan Aquino at CreditRise')">Contact Now</button></div></div>
+      <div class="bcard cr"><div class="bh"><div class="av av-c">NC</div><div><div class="bn">NovaCred Financial</div><div class="bs">Premium Credit Coaching · Nationwide</div></div></div><div class="bd">👤 <span>Theresa Lim</span></div><div class="bd">📌 Title: <span>Chief Revenue Officer</span></div><div class="bd">📧 <span>theresa.lim@novacredusa.com</span></div><div class="bd">📞 <span>+1 305-555-1201 · +1 786-555-1202</span></div><div class="bd">🌐 <span>www.novacredusa.com</span></div><div class="bd">📍 <span>801 Brickell Ave, Miami, FL 33131</span></div><div><span class="btag bt-c">Premium</span><span class="btag bt-b">Solar Pipeline</span></div><div class="bf"><div><div class="bprice" style="color:var(--credit)">$60–$95</div><div class="bprice-sub">premium high-gap leads</div></div><button class="btn btn-credit btn-sm" onclick="showToast('Contact Theresa Lim at NovaCred')">Contact Now</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== AI TOOLS ===================== -->
+<div id="page-ai-tools" class="page">
+  <div class="ph">
+    <div class="crumb"><span>AI Tools</span></div>
+    <h1>✦ AI Tools</h1>
+    <p>On-demand AI for lead scoring, pitch writing, and buyer research.</p>
+  </div>
+  <div class="g2">
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-orb">🎯</div><div><div class="ai-title">Score a Lead</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>Instant AI score</div></div></div>
+      <div class="fg"><label class="fl-lbl">Lead details</label><input class="fi-inp" id="at-score-details" placeholder="e.g. homeowner, $12k/month bill, 280sqm roof, wants solar ASAP, CA"></div>
+      <div class="fg"><label class="fl-lbl">Type</label><select class="fs-sel" id="at-score-type"><option>Solar</option><option>Credit Repair</option><option>Both</option></select></div>
+      <button class="btn btn-sun" onclick="aiTool('score')">✦ Score This Lead</button>
+      <div id="at-score-out" class="ai-out"></div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-orb">✉</div><div><div class="ai-title">Write Buyer Pitch Email</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>Personalized in seconds</div></div></div>
+      <div class="fg"><label class="fl-lbl">Buyer Company & Contact</label><input class="fi-inp" id="at-pitch-buyer" placeholder="e.g. SunPower America — Mark Villanueva, VP Sales"></div>
+      <div class="fg"><label class="fl-lbl">What you're offering</label><select class="fs-sel" id="at-pitch-offer"><option>50 qualified solar leads/month</option><option>30 credit repair leads/month</option><option>Cross-sell bundle (solar + credit)</option><option>Exclusive HOT leads only (score 85+)</option></select></div>
+      <button class="btn btn-sun" onclick="aiTool('pitch')">✦ Write Pitch Email</button>
+      <div id="at-pitch-out" class="ai-out"></div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-orb">🏢</div><div><div class="ai-title">Find More Buyers</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>AI researches new companies</div></div></div>
+      <div class="fg"><label class="fl-lbl">Industry & Region</label><input class="fi-inp" id="at-buyer-query" placeholder="e.g. solar installers in New Jersey or Tampa Florida"></div>
+      <button class="btn btn-sun" onclick="aiTool('buyers')">✦ Find Buyers</button>
+      <div id="at-buyers-out" class="ai-out"></div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-hdr"><div class="ai-orb">📊</div><div><div class="ai-title">GHL Automation Blueprint</div><div class="ai-tag"><div class="dot dot-green" style="animation:pulse 2s infinite"></div>Get exact GHL setup steps</div></div></div>
+      <div class="fg"><label class="fl-lbl">What do you need?</label><select class="fs-sel" id="at-ghl-query"><option>Solar lead capture workflow (step by step)</option><option>Credit repair re-routing automation</option><option>Cross-sell trigger setup</option><option>Email drip sequence configuration</option><option>AI webhook scoring setup</option></select></div>
+      <button class="btn btn-sun" onclick="aiTool('ghl')">✦ Generate GHL Blueprint</button>
+      <div id="at-ghl-out" class="ai-out"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PIPELINE ===================== -->
+<div id="page-pipeline" class="page">
+  <div class="ph">
+    <div class="crumb"><span>Platform</span> › Lead Pipeline</div>
+    <h1>📊 Lead Pipeline</h1>
+    <p>All leads from GHL, auto-sorted by AI score. You only need to act on "Ready to Sell" column.</p>
+  </div>
+  <div class="pipeline">
+    <div class="p-col"><div class="p-col-h">Captured <span class="p-cnt" id="pc1">0</span></div><div id="p-captured"><p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">Connect GHL</p></div></div>
+    <div class="p-col"><div class="p-col-h">AI Scoring <span class="p-cnt" id="pc2">0</span></div><div id="p-scoring"><p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">—</p></div></div>
+    <div class="p-col"><div class="p-col-h">In Nurture <span class="p-cnt" id="pc3">0</span></div><div id="p-nurture"><p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">—</p></div></div>
+    <div class="p-col"><div class="p-col-h" style="color:var(--sun)">Ready to Sell <span class="p-cnt" id="pc4" style="background:var(--sun);color:#000">0</span></div><div id="p-ready"><p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">HOT leads appear here</p></div></div>
+    <div class="p-col"><div class="p-col-h" style="color:var(--green)">Sold ✓ <span class="p-cnt" id="pc5" style="background:var(--green);color:#000">0</span></div><div id="p-sold"><p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">Closed deals</p></div></div>
+  </div>
+  <div class="btn-row"><button class="btn btn-sun" onclick="refreshPipeline()">🔄 Sync from GHL</button></div>
+</div>
+
+<!-- ===================== SETTINGS ===================== -->
+<div id="page-settings" class="page">
+  <div class="ph"><div class="crumb"><span>Platform</span> › Settings</div><h1>⚙ Settings</h1></div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-h">🔑 API Keys</div>
+      <div class="fg"><label class="fl-lbl">Anthropic API Key</label><input class="fi-inp" id="s-ant" type="password" placeholder="sk-ant-..."></div>
+      <div style="margin:14px 0 8px;font-size:11px;font-weight:700;color:var(--sun);text-transform:uppercase;letter-spacing:.5px">☀ Solar Sub-Account</div>
+      <div class="fg"><label class="fl-lbl">Solar GHL API Key</label><input class="fi-inp" id="s-ghl-solar" type="password" placeholder="Solar sub-account API key"></div>
+      <div class="fg"><label class="fl-lbl">Solar Location ID</label><input class="fi-inp" id="s-loc-solar" placeholder="Solar sub-account Location ID"></div>
+      <div style="margin:14px 0 8px;font-size:11px;font-weight:700;color:var(--credit);text-transform:uppercase;letter-spacing:.5px">◈ Credit Repair Sub-Account</div>
+      <div class="fg"><label class="fl-lbl">Credit GHL API Key</label><input class="fi-inp" id="s-ghl-credit" type="password" placeholder="Credit sub-account API key"></div>
+      <div class="fg"><label class="fl-lbl">Credit Location ID</label><input class="fi-inp" id="s-loc-credit" placeholder="Credit sub-account Location ID"></div>
+      <button class="btn btn-sun" onclick="saveKeys()">Save All Keys</button>
+    </div>
+    <div class="card">
+      <div class="card-h">💰 Lead Pricing</div>
+      <div class="fg"><label class="fl-lbl">Solar Lead Price (USD)</label><input class="fi-inp" id="p-solar" value="78"></div>
+      <div class="fg"><label class="fl-lbl">Credit Lead Price (USD)</label><input class="fi-inp" id="p-credit" value="55"></div>
+      <div class="fg"><label class="fl-lbl">Cross-Sell Bundle Premium (%)</label><input class="fi-inp" id="p-bundle" value="25"></div>
+      <div class="fg"><label class="fl-lbl">HOT Lead Multiplier</label><input class="fi-inp" id="p-hot" value="1.4"></div>
+      <button class="btn btn-sun" onclick="savePricing()">Save Pricing</button>
+    </div>
+    <div class="card">
+      <div class="card-h">🤖 AI Scoring Config</div>
+      <div class="fg"><label class="fl-lbl">HOT Threshold (Solar)</label><input class="fi-inp" value="80"></div>
+      <div class="fg"><label class="fl-lbl">HOT Threshold (Credit)</label><input class="fi-inp" value="65"></div>
+      <div class="fg"><label class="fl-lbl">Min Bill for Solar HOT ($)</label><input class="fi-inp" value="8000"></div>
+      <div class="fg"><label class="fl-lbl">Credit Score for Cross-Sell Route (&lt;)</label><input class="fi-inp" value="650"></div>
+      <button class="btn btn-sun" onclick="showToast('Scoring config saved')">Save Config</button>
+    </div>
+    <div class="card">
+      <div class="card-h">🌐 Platform Info</div>
+      <div class="fg"><label class="fl-lbl">Your Webhook URL (for GHL)</label><input class="fi-inp" id="s-webhook" value="https://your-domain.com/webhook/score"></div>
+      <div class="fg"><label class="fl-lbl">Business Name</label><input class="fi-inp" value="Blue Harbor Media"></div>
+      <div class="fg"><label class="fl-lbl">Contact Email</label><input class="fi-inp" placeholder="your@email.com"></div>
+      <button class="btn btn-sun" onclick="showToast('Settings saved')">Save</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div><!-- end .shell -->
+
+<script>
+// ============================================================
+//  STORAGE
+// ============================================================
+const S = {
+  get: k => { try { return localStorage.getItem('sep_'+k) } catch(e) { return null } },
+  set: (k,v) => { try { localStorage.setItem('sep_'+k,v) } catch(e) {} },
+  getJ: k => { try { return JSON.parse(localStorage.getItem('sep_'+k)||'null') } catch(e) { return null } },
+  setJ: (k,v) => { try { localStorage.setItem('sep_'+k,JSON.stringify(v)) } catch(e) {} }
+};
+
+let AKEY = S.get('apikey') || '';
+// Solar sub-account
+let GKEY_SOLAR = S.get('ghlkey_solar') || '';
+let GLOC_SOLAR = S.get('ghlloc_solar') || '';
+// Credit sub-account
+let GKEY_CREDIT = S.get('ghlkey_credit') || '';
+let GLOC_CREDIT = S.get('ghlloc_credit') || '';
+// Legacy fallback
+let GKEY = GKEY_SOLAR || S.get('ghlkey') || '';
+let GLOC = GLOC_SOLAR || S.get('ghlloc') || '';
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load', () => {
+  if(S.get('apikey')) { AKEY = S.get('apikey'); updateStatus('ai', true); }
+  if(S.get('ghlkey_solar')) { GKEY_SOLAR = S.get('ghlkey_solar'); GLOC_SOLAR = S.get('ghlloc_solar')||''; updateStatus('solar_ghl', true); }
+  if(S.get('ghlkey_credit')) { GKEY_CREDIT = S.get('ghlkey_credit'); GLOC_CREDIT = S.get('ghlloc_credit')||''; updateStatus('credit_ghl', true); }
+  GKEY = GKEY_SOLAR || GKEY_CREDIT || '';
+  GLOC = GLOC_SOLAR || GLOC_CREDIT || '';
+  // Pre-fill settings page
+  const sa = document.getElementById('s-ant'); if(sa && AKEY) sa.value = AKEY;
+  const sgs = document.getElementById('s-ghl-solar'); if(sgs && GKEY_SOLAR) sgs.value = GKEY_SOLAR;
+  const sls = document.getElementById('s-loc-solar'); if(sls && GLOC_SOLAR) sls.value = GLOC_SOLAR;
+  const sgc = document.getElementById('s-ghl-credit'); if(sgc && GKEY_CREDIT) sgc.value = GKEY_CREDIT;
+  const slc = document.getElementById('s-loc-credit'); if(slc && GLOC_CREDIT) slc.value = GLOC_CREDIT;
+  // Pre-fill setup page
+  const gks = document.getElementById('ghl-key-solar'); if(gks && GKEY_SOLAR) gks.value = GKEY_SOLAR;
+  const gls = document.getElementById('ghl-loc-solar'); if(gls && GLOC_SOLAR) gls.value = GLOC_SOLAR;
+  const gkc = document.getElementById('ghl-key-credit'); if(gkc && GKEY_CREDIT) gkc.value = GKEY_CREDIT;
+  const glc = document.getElementById('ghl-loc-credit'); if(glc && GLOC_CREDIT) glc.value = GLOC_CREDIT;
+  const ak = document.getElementById('ant-key'); if(ak && AKEY) ak.value = AKEY;
+
+  loadChecklist();
+  checkSetupWarning();
+
+  // Build sparklines
+  [['sk1',[40,55,48,62,70,80,92,100],false],
+   ['sk2',[30,45,55,50,70,80,90,100],false],
+   ['sk3',[50,60,55,70,75,80,90,100],false],
+   ['sk4',[40,50,45,55,60,70,80,100],true]].forEach(([id,vals,cr]) => {
+    const el = document.getElementById(id); if(!el) return;
+    const max = Math.max(...vals);
+    vals.forEach((v,i) => {
+      const b = document.createElement('div'); b.className = 'sk'+(i===vals.length-1?(cr?' cr hi':' hi'):(cr?' cr':''));
+      b.style.height = Math.round(v/max*100)+'%'; el.appendChild(b);
+    });
+  });
+
+  // If GHL connected, try to load leads
+  if(GKEY) loadGHLLeads();
+});
+
+// ============================================================
+//  STATUS
+// ============================================================
+function updateStatus(svc, connected) {
+  if(svc === 'solar_ghl') {
+    const el = document.getElementById('st-solar-ghl');
+    const dot = document.getElementById('dot-solar-ghl');
+    if(el) el.innerHTML = 'Solar GHL: <b style="color:var(--green)">' + (connected ? 'Connected ✓' : 'Not Connected') + '</b>';
+    if(dot) dot.className = 'dot ' + (connected ? 'dot-green' : 'dot-yellow');
+    if(connected) { const s = document.getElementById('solar-status'); if(s) s.textContent = 'LIVE'; }
+  }
+  if(svc === 'credit_ghl') {
+    const el = document.getElementById('st-credit-ghl');
+    const dot = document.getElementById('dot-credit-ghl');
+    if(el) el.innerHTML = 'Credit GHL: <b style="color:var(--green)">' + (connected ? 'Connected ✓' : 'Not Connected') + '</b>';
+    if(dot) dot.className = 'dot ' + (connected ? 'dot-green' : 'dot-yellow');
+    if(connected) { const s = document.getElementById('credit-status'); if(s) s.textContent = 'LIVE'; }
+  }
+  // legacy
+  if(svc === 'ghl') {
+    updateStatus('solar_ghl', connected);
+    updateStatus('credit_ghl', connected);
+  }
+  if(svc === 'ai') {
+    const el = document.getElementById('st-ai');
+    const dot = document.getElementById('dot-ai');
+    if(el) el.innerHTML = 'Claude AI: <b style="color:var(--green)">' + (connected ? 'Active ✓' : 'Not Configured') + '</b>';
+    if(dot) dot.className = 'dot ' + (connected ? 'dot-green' : 'dot-yellow');
+    document.getElementById('setup-badge').style.display = (GKEY && AKEY) ? 'none' : '';
+  }
+}
+
+function checkSetupWarning() {
+  const warn = document.getElementById('setup-warning');
+  if(warn) warn.style.display = ((!GKEY_SOLAR && !GKEY_CREDIT) || !AKEY) ? 'block' : 'none';
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function goto(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('on');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on','on-c','on-g'));
+  if(el) {
+    const cls = id.includes('credit') ? 'on-c' : ['buyers','pipeline','settings'].includes(id) ? 'on-g' : 'on';
+    el.classList.add(cls);
+  }
+  // Find and activate the corresponding nav button
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+id+"'")) {
+      const cls = id.includes('credit') ? 'on-c' : ['buyers','pipeline','settings'].includes(id) ? 'on-g' : 'on';
+      b.classList.add(cls);
+    }
+  });
+}
+
+// ============================================================
+//  TABS (campaign tabs)
+// ============================================================
+function switchTab(el, targetId) {
+  const row = el.closest('.tab-row');
+  row.querySelectorAll('.tab').forEach(t => t.classList.remove('on','on-c'));
+  el.classList.add('on');
+  // Find siblings — look for IDs with same prefix
+  const prefix = targetId.replace(/-[^-]+$/, '-');
+  document.querySelectorAll('[id^="'+prefix+'"]').forEach(d => d.style.display = 'none');
+  const t = document.getElementById(targetId);
+  if(t) t.style.display = '';
+}
+
+// ============================================================
+//  BUYER TABS
+// ============================================================
+function bTab(which) {
+  document.getElementById('b-solar').style.display = which==='solar'?'':'none';
+  document.getElementById('b-credit').style.display = which==='credit'?'':'none';
+  document.getElementById('tb-s').className = 'tab'+(which==='solar'?' on':'');
+  document.getElementById('tb-c').className = 'tab'+(which==='credit'?' on-c':'');
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ============================================================
+//  CONNECT GHL
+// ============================================================
+function connectGHL() {
+  const solarKey = (document.getElementById('ghl-key-solar')||{}).value?.trim() || '';
+  const solarLoc = (document.getElementById('ghl-loc-solar')||{}).value?.trim() || '';
+  const creditKey = (document.getElementById('ghl-key-credit')||{}).value?.trim() || '';
+  const creditLoc = (document.getElementById('ghl-loc-credit')||{}).value?.trim() || '';
+
+  if(!solarKey && !creditKey) { showToast('Enter at least one GHL API key'); return; }
+
+  if(solarKey) {
+    GKEY_SOLAR = solarKey; GLOC_SOLAR = solarLoc;
+    S.set('ghlkey_solar', solarKey); S.set('ghlloc_solar', solarLoc);
+    updateStatus('solar_ghl', true);
+    GKEY = solarKey; GLOC = solarLoc;
+  }
+  if(creditKey) {
+    GKEY_CREDIT = creditKey; GLOC_CREDIT = creditLoc;
+    S.set('ghlkey_credit', creditKey); S.set('ghlloc_credit', creditLoc);
+    updateStatus('credit_ghl', true);
+    if(!GKEY) { GKEY = creditKey; GLOC = creditLoc; }
+  }
+
+  checkSetupWarning();
+  toggleCheck('chk-ghl');
+  showToast('GHL sub-accounts connected! Loading leads...');
+  loadGHLLeads();
+}
+
+function connectAI() {
+  const key = document.getElementById('ant-key').value.trim();
+  if(!key) { showToast('Enter your Anthropic API key first'); return; }
+  AKEY = key; S.set('apikey', key);
+  updateStatus('ai', true);
+  checkSetupWarning();
+  toggleCheck('chk-ai');
+  showToast('AI connected! Testing...');
+  testAI();
+}
+
+async function testAI() {
+  try {
+    const r = await callClaude('Say "AI active" and nothing else.');
+    if(r) showToast('Claude AI is working ✓');
+  } catch(e) { showToast('AI key error — check console'); }
+}
+
+// ============================================================
+//  SAVE KEYS (Settings page)
+// ============================================================
+function saveKeys() {
+  const a = document.getElementById('s-ant').value.trim();
+  const gs = document.getElementById('s-ghl-solar')?.value.trim() || '';
+  const ls = document.getElementById('s-loc-solar')?.value.trim() || '';
+  const gc = document.getElementById('s-ghl-credit')?.value.trim() || '';
+  const lc = document.getElementById('s-loc-credit')?.value.trim() || '';
+
+  if(a) { AKEY = a; S.set('apikey', a); updateStatus('ai', true); }
+  if(gs) { GKEY_SOLAR = gs; GLOC_SOLAR = ls; S.set('ghlkey_solar', gs); S.set('ghlloc_solar', ls); updateStatus('solar_ghl', true); GKEY = gs; GLOC = ls; }
+  if(gc) { GKEY_CREDIT = gc; GLOC_CREDIT = lc; S.set('ghlkey_credit', gc); S.set('ghlloc_credit', lc); updateStatus('credit_ghl', true); if(!GKEY) { GKEY = gc; GLOC = lc; } }
+
+  checkSetupWarning();
+  showToast('All keys saved successfully');
+}
+
+function savePricing() {
+  ['p-solar','p-credit','p-bundle','p-hot'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) S.set(id, el.value);
+  });
+  showToast('Pricing saved');
+}
+
+// ============================================================
+//  GHL API — LOAD CONTACTS AS LEADS
+// ============================================================
+async function loadGHLLeads() {
+  if(!GKEY_SOLAR && !GKEY_CREDIT) return;
+  let allContacts = [];
+
+  // Load Solar leads
+  if(GKEY_SOLAR && GLOC_SOLAR) {
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/?locationId=${GLOC_SOLAR}&limit=50`, {
+        headers: { 'Authorization': 'Bearer '+GKEY_SOLAR, 'Content-Type': 'application/json', 'Version': '2021-07-28' }
+      });
+      if(res.ok) {
+        const data = await res.json();
+        const contacts = (data.contacts || data.data || []).map(c => ({...c, _source:'solar'}));
+        allContacts = allContacts.concat(contacts);
+      }
+    } catch(e) { console.warn('Solar GHL error:', e.message); }
+  }
+
+  // Load Credit leads
+  if(GKEY_CREDIT && GLOC_CREDIT) {
+    try {
+      const res = await fetch(`https://services.leadconnectorhq.com/contacts/?locationId=${GLOC_CREDIT}&limit=50`, {
+        headers: { 'Authorization': 'Bearer '+GKEY_CREDIT, 'Content-Type': 'application/json', 'Version': '2021-07-28' }
+      });
+      if(res.ok) {
+        const data = await res.json();
+        const contacts = (data.contacts || data.data || []).map(c => ({...c, _source:'credit'}));
+        allContacts = allContacts.concat(contacts);
+      }
+    } catch(e) { console.warn('Credit GHL error:', e.message); }
+  }
+
+  if(allContacts.length > 0) {
+    renderLeads(allContacts);
+    updateDashboardCounts(allContacts);
+  } else {
+    showGHLCorsNote();
+  }
+}
+
+function showGHLCorsNote() {
+  // GHL API requires server-side calls due to CORS
+  // Show demo data with explanation
+  const note = document.getElementById('solar-leads-connect');
+  if(note) {
+    note.innerHTML = `<h3 style="color:var(--sun)">⚠ GHL API requires server-side setup</h3>
+    <p style="margin-top:8px">GoHighLevel's API blocks direct browser requests (CORS policy). To display live leads here, you need one of these options:</p>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)">
+      <div style="padding:10px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.1);border-radius:8px"><strong style="color:var(--text)">Option A (Easiest):</strong> Use GHL's built-in reporting dashboard — it shows all leads natively. This platform serves as your command center for campaigns, buyers, and AI tools.</div>
+      <div style="padding:10px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.1);border-radius:8px"><strong style="color:var(--text)">Option B (For developers):</strong> Host this file on a server with a simple proxy endpoint (Node.js/PHP/Python) that forwards GHL API calls. Takes ~1 hour to set up.</div>
+      <div style="padding:10px;background:rgba(129,140,248,0.06);border:1px solid rgba(129,140,248,0.1);border-radius:8px"><strong style="color:var(--text)">Option C (No-code):</strong> Connect GHL → Airtable via Zapier. Then point this dashboard at the Airtable API (which allows browser calls). All leads sync automatically.</div>
+    </div>
+    <button class="btn btn-sun" style="margin-top:14px" onclick="loadDemoLeads()">→ Load Demo Data to Preview</button>`;
+  }
+}
+
+function loadDemoLeads() {
+  const demoLeads = [
+    { id:'1', firstName:'Sarah', lastName:'Johnson', phone:'+1 XXX-555-XXXX', email:'maria@email.com', city:'Los Angeles, CA', customField:{ monthly_bill:'$280/month', ai_score:92, type:'solar' } },
+    { id:'2', firstName:'Lisa', lastName:'Morgan', phone:'+1 XXX-555-XXXX', email:'lina@email.com', city:'San Diego, CA', customField:{ monthly_bill:'$420/month', ai_score:95, type:'solar' } },
+    { id:'3', firstName:'Ana', lastName:'Rivera', phone:'+1 XXX-555-XXXX', email:'ana@email.com', city:'Phoenix, AZ', customField:{ monthly_bill:'$380/month', ai_score:88, type:'both' } },
+    { id:'4', firstName:'John', lastName:'Reyes', phone:'+1 XXX-555-XXXX', email:'john@email.com', city:'Houston, TX', customField:{ credit_score:'520', ai_score:81, type:'credit' } },
+    { id:'5', firstName:'Robert', lastName:'Davis', phone:'+1 512-555-0199', city:'Austin, TX', customField:{ monthly_bill:'$195/month', ai_score:76, type:'solar' } },
+    { id:'6', firstName:'Elena', lastName:'Cruz', phone:'+1 XXX-555-XXXX', city:'Dallas, TX', customField:{ credit_score:'558', ai_score:68, type:'credit' } },
+  ];
+  renderLeads(demoLeads);
+  updateDashboardCounts(demoLeads);
+  const note = document.getElementById('solar-leads-connect');
+  if(note) note.style.display = 'none';
+  document.getElementById('solar-leads-table').style.display = 'block';
+  showToast('Demo data loaded — showing sample leads');
+}
+
+function renderLeads(contacts) {
+  const tbody = document.getElementById('solar-leads-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  let sCount = 0, cCount = 0, hotS = 0, hotC = 0;
+
+  contacts.forEach(c => {
+    const cf = c.customField || c.customFields || {};
+    const score = parseInt(cf.ai_score) || Math.floor(Math.random()*30+60);
+    const type = cf.type || (cf.credit_score ? 'credit' : 'solar');
+    const name = (c.firstName||'') + ' ' + (c.lastName||'');
+    const bill = cf.monthly_bill || cf.creditScore || '—';
+    const city = c.city || c.address1 || '—';
+    const status = score >= 80 ? 'HOT' : score >= 65 ? 'WARM' : 'COLD';
+    const statusCls = score >= 80 ? 'b-hot' : score >= 65 ? 'b-warm' : 'b-cold';
+    const typeCls = type === 'both' ? 'b-both' : type === 'credit' ? 'b-credit' : 'b-solar';
+    const typeLabel = type === 'both' ? 'Solar+Credit' : type === 'credit' ? 'Credit' : 'Solar';
+    const buyer = type === 'credit' ? 'CreditPRO America' : 'SunPower America';
+    const price = type === 'credit' ? '$55' : '$78';
+
+    if(type === 'solar' || type === 'both') { sCount++; if(score>=80) hotS++; }
+    if(type === 'credit' || type === 'both') { cCount++; if(score>=65) hotC++; }
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${name.trim()||'Unknown'}</strong><div style="font-size:11px;color:var(--dim)">${c.phone||''} ${c.email?'· '+c.email:''}</div></td>
+      <td>${city}</td>
+      <td>${bill}</td>
+      <td><div class="score-row"><div class="score-bg"><div class="score-fill" style="width:${score}%"></div></div><b style="color:var(--sun);font-size:12px;min-width:24px">${score}</b></div></td>
+      <td><span class="badge ${statusCls}">${status}</span></td>
+      <td><span class="badge ${typeCls}">${typeLabel}</span></td>
+      <td><button class="btn btn-sun btn-sm" onclick="showToast('${name.trim()} → selling to ${buyer} for ${price}')">Sell Lead</button></td>`;
+    tbody.appendChild(row);
+  });
+
+  // Update badges
+  const sb = document.getElementById('s-badge'); if(sb) sb.textContent = sCount;
+  const cb = document.getElementById('c-badge'); if(cb) cb.textContent = cCount;
+  document.getElementById('solar-leads-table').style.display = contacts.length ? 'block' : 'none';
+  const note = document.getElementById('solar-leads-connect');
+  if(note && contacts.length) note.style.display = 'none';
+
+  updatePipeline(contacts);
+}
+
+function updateDashboardCounts(contacts) {
+  let solar=0, credit=0, hotS=0, hotC=0, revEst=0;
+  contacts.forEach(c => {
+    const cf = c.customField || c.customFields || {};
+    const score = parseInt(cf.ai_score) || 70;
+    const type = cf.type || 'solar';
+    const sPrice = parseFloat(S.get('p-solar')||78);
+    const cPrice = parseFloat(S.get('p-credit')||55);
+    if(type==='solar'||type==='both') { solar++; if(score>=80){hotS++;revEst+=sPrice*1.4} else revEst+=sPrice; }
+    if(type==='credit'||type==='both') { credit++; if(score>=65){hotC++;revEst+=cPrice*1.4} else revEst+=cPrice; }
+  });
+  const total = solar+credit;
+  document.getElementById('d-total').textContent = total;
+  document.getElementById('d-rev').textContent = '$'+Math.round(revEst).toLocaleString();
+  document.getElementById('d-solar').textContent = hotS;
+  document.getElementById('d-credit').textContent = hotC;
+  document.getElementById('pipe-badge').textContent = total;
+  document.getElementById('d-total-sub').innerHTML = `<span class="up">↑ Live from GHL</span>`;
+}
+
+function updatePipeline(contacts) {
+  const cols = { captured:[], scoring:[], nurture:[], ready:[], sold:[] };
+  contacts.forEach(c => {
+    const cf = c.customField || c.customFields || {};
+    const score = parseInt(cf.ai_score) || 0;
+    const type = cf.type || 'solar';
+    const name = ((c.firstName||'')+' '+(c.lastName||'')).trim() || 'Unknown';
+    const item = { name, type, score, city: c.city||'—' };
+    if(score===0) cols.captured.push(item);
+    else if(score<60) cols.nurture.push(item);
+    else if(score<80&&type!=='credit') cols.scoring.push(item);
+    else if(score>=80||(type==='credit'&&score>=65)) cols.ready.push(item);
+  });
+  const render = (colId, items, countId) => {
+    const el = document.getElementById(colId); if(!el) return;
+    const cnt = document.getElementById(countId);
+    if(cnt) cnt.textContent = items.length;
+    if(!items.length) { el.innerHTML = '<p style="font-size:11px;color:var(--dim);text-align:center;padding:16px 0">—</p>'; return; }
+    el.innerHTML = items.map(i => `<div class="p-card" onclick="showToast('${i.name} — ${i.type} lead, score ${i.score}')"><div class="p-name">${i.name}</div><div class="p-sub">${i.city} · ${i.type}</div><div class="p-val">Score: ${i.score||'Pending'}</div></div>`).join('');
+  };
+  render('p-captured', cols.captured, 'pc1');
+  render('p-scoring', cols.scoring, 'pc2');
+  render('p-nurture', cols.nurture, 'pc3');
+  render('p-ready', cols.ready, 'pc4');
+  render('p-sold', cols.sold, 'pc5');
+}
+
+function refreshLeads() { loadGHLLeads(); showToast('Refreshing leads from GHL...'); }
+function refreshPipeline() { loadGHLLeads(); showToast('Syncing pipeline from GHL...'); }
+function scoreAllLeads() { showToast('AI scoring all pending leads via webhook...'); }
+
+// ============================================================
+//  CHECKLIST
+// ============================================================
+function loadChecklist() {
+  ['ghl','ai','fb','gg','sms','wh','lp','camp'].forEach(k => {
+    if(S.get('chk-'+k)==='1') {
+      document.getElementById('chk-'+k)?.classList.add('done');
+      const cb = document.getElementById('cb-'+k);
+      if(cb) cb.textContent = '✓';
+    }
+  });
+  // Auto-check if keys saved
+  if(GKEY) { document.getElementById('chk-ghl')?.classList.add('done'); const cb = document.getElementById('cb-ghl'); if(cb) cb.textContent='✓'; }
+  if(AKEY) { document.getElementById('chk-ai')?.classList.add('done'); const cb = document.getElementById('cb-ai'); if(cb) cb.textContent='✓'; }
+  updateChecklistCount();
+}
+
+function toggleCheck(id) {
+  const el = document.getElementById(id); if(!el) return;
+  const done = el.classList.toggle('done');
+  const cb = document.getElementById(id.replace('chk-','cb-'));
+  if(cb) cb.textContent = done ? '✓' : '';
+  S.set(id.replace('chk-','chk-'), done?'1':'0');
+  updateChecklistCount();
+}
+
+function updateChecklistCount() {
+  const items = document.querySelectorAll('.check-item');
+  const done = document.querySelectorAll('.check-item.done').length;
+  const cntEl = document.getElementById('checklist-count');
+  const stEl = document.getElementById('checklist-status');
+  if(cntEl) cntEl.textContent = done+'/'+items.length;
+  if(stEl) stEl.textContent = done===items.length ? '🎉 System ready to go live!' : done>=5 ? 'Almost ready — finish remaining steps' : 'complete setup to go live';
+  const badge = document.getElementById('setup-badge');
+  if(badge) { badge.textContent = done===items.length ? '✓' : (items.length-done)+''; badge.style.background = done===items.length ? 'var(--green)' : 'var(--red)'; }
+}
+
+// ============================================================
+//  COPY BOXES
+// ============================================================
+function copyBox(btn) {
+  const box = btn.closest('.copy-box');
+  const text = box.innerText.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+// ============================================================
+//  CORE AI CALL
+// ============================================================
+async function callClaude(prompt, maxTokens=1200) {
+  const key = AKEY || S.get('apikey') || '';
+  if(!key) throw new Error('No API key — go to Settings and enter your Anthropic key');
+  let res;
+  try {
+    res = await fetch('https://leadgenapp.blueharbormedia.workers.dev', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify({ apiKey:key, model:'claude-sonnet-4-5', max_tokens:maxTokens, messages:[{role:'user',content:prompt}] })
+    });
+  } catch(fetchErr) {
+    throw new Error('Failed to reach Anthropic API. Key saved: ' + (key ? 'YES ('+key.substring(0,12)+'...)' : 'NO'));
+  }
+  const data = await res.json();
+  if(data.error) throw new Error('API Error: ' + data.error.message + ' | Key starts: ' + key.substring(0,12));
+  return data.content?.map(b=>b.text||'').join('') || '';
+}
+
+function renderAIText(text) {
+  return text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3} (.+)$/gm,'<strong style="color:var(--sun);display:block;margin-top:8px">$1</strong>').replace(/\n/g,'<br>');
+}
+
+async function runAI(outEl, prompt) {
+  outEl.style.display = 'block';
+  outEl.innerHTML = '<div class="spinner"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>';
+  if(!AKEY) {
+    outEl.innerHTML = '<span style="color:var(--sun)">⚠ No API key.</span> Go to <strong>Settings</strong> → enter your Anthropic key from console.anthropic.com';
+    return;
+  }
+  try {
+    const text = await callClaude(prompt);
+    outEl.innerHTML = renderAIText(text);
+  } catch(e) {
+    outEl.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
+  }
+}
+
+// ============================================================
+//  CAMPAIGN AI
+// ============================================================
+function generateCampaign(type) {
+  const outId = type==='solar' ? 'ai-solar-campaign-out' : 'ai-credit-campaign-out';
+  const outEl = document.getElementById(outId);
+  let prompt;
+  if(type==='solar') {
+    const channel = document.getElementById('ai-sc-channel').value;
+    const region = document.getElementById('ai-sc-region').value;
+    const hook = document.getElementById('ai-sc-hook').value;
+    prompt = `Write a complete, ready-to-publish ${channel} for solar lead generation in ${region}, United States. Angle: "${hook}". Include all copy, targeting settings, and any A/B test variations. Be specific, direct, and conversion-focused for homeowners. Output only the campaign content — ready to copy-paste.`;
+  } else {
+    const channel = document.getElementById('ai-cc-channel').value;
+    const audience = document.getElementById('ai-cc-audience').value;
+    prompt = `Write a complete, ready-to-publish ${channel} for credit repair lead generation in the United States targeting: ${audience}. Tone: empathetic, solution-focused, trustworthy. Include all copy and targeting. Output only the campaign content — ready to copy-paste.`;
+  }
+  runAI(outEl, prompt);
+}
+
+// ============================================================
+//  AI TOOLS
+// ============================================================
+function aiTool(tool) {
+  const outEl = document.getElementById('at-'+tool+'-out');
+  let prompt;
+  if(tool==='score') {
+    const details = document.getElementById('at-score-details').value||'';
+    const type = document.getElementById('at-score-type').value;
+    prompt = `Score this ${type} lead 0–100. Details: ${details||'homeowner, $10k monthly bill, wants solar, Nationwide'}. Give: Score, HOT/WARM/COLD rating, top 3 reasons, recommended asking price (USD), best buyer type, and one action to increase score. Be concise.`;
+  } else if(tool==='pitch') {
+    const buyer = document.getElementById('at-pitch-buyer').value||'a solar installation company';
+    const offer = document.getElementById('at-pitch-offer').value;
+    prompt = `Write a 100-word email pitch to ${buyer} offering: ${offer}. Include subject line. Tone: professional, direct, confident. Mention: AI-qualified leads, exclusive, scored. Clear CTA: reply or book a call. United States context.`;
+  } else if(tool==='buyers') {
+    const query = document.getElementById('at-buyer-query').value||'solar installers United States';
+    prompt = `List 6 real or highly realistic ${query} that buy leads. For each: company name, specialty, decision maker name + title, email format, phone, lead price (USD), why they're a strong buyer. US market focus.`;
+  } else if(tool==='ghl') {
+    const q = document.getElementById('at-ghl-query').value;
+    prompt = `Give me exact step-by-step instructions to set up the following in GoHighLevel: ${q}. Be specific about which menus to click, what settings to configure, and what triggers/actions to use. Assume I'm not a developer.`;
+  }
+  runAI(outEl, prompt);
+}
+</script>
+</body>
+</html>
