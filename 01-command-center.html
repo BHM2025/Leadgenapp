@@ -1740,7 +1740,7 @@ async function callClaude(prompt, maxTokens=1200) {
   if(!key) throw new Error('No API key — go to Settings and enter your Anthropic key');
   let res;
   try {
-    res = await fetch('https://leadgenapp.blueharbormedia.workers.dev', {
+    res = await fetch('https://bhm-proxy.blueharbormedia.workers.dev', {
       method:'POST',
       headers:{
         'Content-Type':'application/json'
